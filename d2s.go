@@ -6,7 +6,8 @@ import (
 	"os"
 )
 
-func Parse(filepath string) (*character.Character, error) {
+//Open returns a new Character for editing and viewing
+func Open(filepath string) (*character.Character, error) {
 	file, err := os.Open(filepath)
 	if err != nil {
 		log.Fatalln("Error while opening .d2s file")
@@ -23,4 +24,22 @@ func Parse(filepath string) (*character.Character, error) {
 	}
 
 	return c, nil
+}
+
+//Save will create *.d2s file by filepath with Character struct
+func Save(c *character.Character, filepath string) error {
+	file, err := os.Create(filepath)
+	if err != nil {
+		log.Fatalln("Error while creating .d2s file")
+		return err
+	}
+
+	defer file.Close()
+
+	err = c.ToWriterCorrect(file)
+	if err != nil {
+		log.Fatalln("Error while writing buffer file")
+		return err
+	}
+	return nil
 }
