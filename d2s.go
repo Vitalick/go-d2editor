@@ -10,7 +10,7 @@ import (
 func Open(filepath string) (*Character, error) {
 	file, err := os.Open(filepath)
 	if err != nil {
-		log.Fatalln("Error while opening .d2s file")
+		log.Println("Error while opening .d2s file")
 		return nil, err
 	}
 
@@ -19,7 +19,7 @@ func Open(filepath string) (*Character, error) {
 	c, err := NewCharacter(file)
 
 	if err != nil {
-		log.Fatalln("Error while parsing .d2s file")
+		log.Println("Error while parsing .d2s file")
 		return nil, err
 	}
 

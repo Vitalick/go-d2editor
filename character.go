@@ -4,33 +4,35 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/binary"
+	"github.com/vitalick/d2s/quests"
 	"io"
 )
 
 type Character struct {
-	Header         *Header     `json:"header"`
-	ActiveWeapon   uint32      `json:"active_weapon"`
-	Name           string      `json:"name"`
-	Status         *Status     `json:"status"`
-	Progression    byte        `json:"-"`
-	Unk0x0026      [2]byte     `json:"-"`
-	ClassId        byte        `json:"class_id"`
-	Unk0x0029      [2]byte     `json:"-"`
-	Level          byte        `json:"level"`
-	Created        uint32      `json:"created"`
-	LastPlayed     uint32      `json:"last_played"`
-	Unk0x0034      [4]byte     `json:"-"`
-	HotkeySkills   [16]Skill   `json:"hotkey_skills"`
-	LeftSkill      Skill       `json:"left_skill"`
-	RightSkill     Skill       `json:"right_skill"`
-	LeftSwapSkill  Skill       `json:"left_swap_skill"`
-	RightSwapSkill Skill       `json:"right_swap_skill"`
-	Appearances    Appearances `json:"appearances"`
-	Locations      *Locations  `json:"locations"`
-	MapId          uint32      `json:"map_id"`
-	Unk0x00af      [2]byte     `json:"-"`
-	Mercenary      Mercenary   `json:"mercenary"`
-	RealmData      byte        `json:"-"`
+	Header         *Header        `json:"header"`
+	ActiveWeapon   uint32         `json:"active_weapon"`
+	Name           string         `json:"name"`
+	Status         *Status        `json:"status"`
+	Progression    byte           `json:"-"`
+	Unk0x0026      [2]byte        `json:"-"`
+	ClassId        byte           `json:"class_id"`
+	Unk0x0029      [2]byte        `json:"-"`
+	Level          byte           `json:"level"`
+	Created        uint32         `json:"created"`
+	LastPlayed     uint32         `json:"last_played"`
+	Unk0x0034      [4]byte        `json:"-"`
+	HotkeySkills   [16]Skill      `json:"hotkey_skills"`
+	LeftSkill      Skill          `json:"left_skill"`
+	RightSkill     Skill          `json:"right_skill"`
+	LeftSwapSkill  Skill          `json:"left_swap_skill"`
+	RightSwapSkill Skill          `json:"right_swap_skill"`
+	Appearances    Appearances    `json:"appearances"`
+	Locations      *Locations     `json:"locations"`
+	MapId          uint32         `json:"map_id"`
+	Unk0x00af      [2]byte        `json:"-"`
+	Mercenary      Mercenary      `json:"mercenary"`
+	RealmData      [144]byte      `json:"-"`
+	Quests         *quests.Quests `json:"quests"`
 }
 
 type inputStruct struct {
@@ -105,6 +107,18 @@ func NewCharacter(r io.Reader) (*Character, error) {
 	inArr = append(inArr, inputStruct{&c.Mercenary, nil})
 	inArr = append(inArr, inputStruct{&c.RealmData, nil})
 
+	inArr = append(inArr, inputStruct{
+		nil,
+		func(r io.Reader, c *Character) error {
+			q, er := quests.NewQuests(r)
+			if er != nil {
+				return er
+			}
+			c.Quests = q
+			return nil
+		},
+	})
+
 	for _, inData := range inArr {
 		if inData.f != nil {
 			err = inData.f(r, c)
@@ -127,7 +141,7 @@ func NewCharacter(r io.Reader) (*Character, error) {
 	c.Unk0x0029 = [2]byte{0x10, 0x1e}
 	c.Unk0x0034 = [4]byte{0xff, 0xff, 0xff, 0xff}
 	c.Unk0x00af = [2]byte{0x0, 0x0}
-	c.RealmData = 0x0
+	c.RealmData = [144]byte{}
 
 	return c, nil
 }
@@ -171,6 +185,11 @@ func (c *Character) ToWriter(w io.Writer) error {
 	values = append(values, c.Unk0x00af)
 	values = append(values, c.Mercenary)
 	values = append(values, c.RealmData)
+	packedQuests, err := c.Quests.GetPacked()
+	if err != nil {
+		return err
+	}
+	values = append(values, packedQuests)
 
 	for _, val := range values {
 		if err := binary.Write(w, binaryEndian, val); err != nil {
