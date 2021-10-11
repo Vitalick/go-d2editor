@@ -14,10 +14,13 @@ const (
 )
 
 type Status struct {
-	IsHardcore, IsDead, IsExpansion, IsLadder bool
+	IsHardcore  bool `json:"is_hardcore"`
+	IsDead      bool `json:"is_dead"`
+	IsExpansion bool `json:"is_expansion"`
+	IsLadder    bool `json:"is_ladder"`
 }
 
-//NewStatus Like Read func
+//NewStatus ...
 func NewStatus(r io.Reader) (*Status, error) {
 	var flags byte
 	if err := binary.Read(r, binaryEndian, &flags); err != nil {
@@ -32,6 +35,7 @@ func NewStatus(r io.Reader) (*Status, error) {
 	return s, nil
 }
 
+//GetFlags return all flags packed in one byte
 func (s *Status) GetFlags() byte {
 	var flags byte
 	if s.IsHardcore {

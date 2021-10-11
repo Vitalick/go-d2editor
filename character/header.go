@@ -8,10 +8,10 @@ import (
 const defaultMagic = 0xAA55AA55
 
 type Header struct {
-	Magic    uint32
-	Version  uint32
-	Filesize uint32
-	Checksum uint32
+	Magic    uint32 `json:"magic"`
+	Version  uint32 `json:"version"`
+	Filesize uint32 `json:"filesize"`
+	Checksum uint32 `json:"checksum"`
 }
 
 //NewHeader Like Read func
@@ -26,6 +26,7 @@ func NewHeader(r io.Reader) (*Header, error) {
 	return h, nil
 }
 
+//Fix changes filesize and checksum on struct
 func (h *Header) Fix(c *Character) error {
 	h.Checksum = 0
 	b, err := c.GetBytes()

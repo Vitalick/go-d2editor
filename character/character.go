@@ -8,18 +8,24 @@ import (
 )
 
 type Character struct {
-	Header       *Header
-	ActiveWeapon uint32
-	Name         string
-	Status       *Status
-	Progression  byte
-	Unk0x0026    [2]byte `json:"-"`
-	ClassId      byte
-	Unk0x0029    [2]byte `json:"-"`
-	Level        byte
-	Created      uint32
-	LastPlayed   uint32
-	Unk0x0034    [4]byte `json:"-"`
+	Header         *Header     `json:"header"`
+	ActiveWeapon   uint32      `json:"active_weapon"`
+	Name           string      `json:"name"`
+	Status         *Status     `json:"status"`
+	Progression    byte        `json:"-"`
+	Unk0x0026      [2]byte     `json:"-"`
+	ClassId        byte        `json:"class_id"`
+	Unk0x0029      [2]byte     `json:"-"`
+	Level          byte        `json:"level"`
+	Created        uint32      `json:"created"`
+	LastPlayed     uint32      `json:"last_played"`
+	Unk0x0034      [4]byte     `json:"-"`
+	HotkeySkills   [16]Skill   `json:"hotkey_skills"`
+	LeftSkill      Skill       `json:"left_skill"`
+	RightSkill     Skill       `json:"right_skill"`
+	LeftSwapSkill  Skill       `json:"left_swap_skill"`
+	RightSwapSkill Skill       `json:"right_swap_skill"`
+	Appearances    Appearances `json:"appearances"`
 }
 
 type inputStruct struct {
@@ -27,6 +33,7 @@ type inputStruct struct {
 	f    func(r io.Reader, c *Character) error
 }
 
+//NewCharacter ...
 func NewCharacter(r io.Reader) (*Character, error) {
 	c := &Character{}
 	var err error
@@ -69,6 +76,12 @@ func NewCharacter(r io.Reader) (*Character, error) {
 	inArr = append(inArr, inputStruct{&c.Created, nil})
 	inArr = append(inArr, inputStruct{&c.LastPlayed, nil})
 	inArr = append(inArr, inputStruct{&c.Unk0x0034, nil})
+	inArr = append(inArr, inputStruct{&c.HotkeySkills, nil})
+	inArr = append(inArr, inputStruct{&c.LeftSkill, nil})
+	inArr = append(inArr, inputStruct{&c.RightSkill, nil})
+	inArr = append(inArr, inputStruct{&c.LeftSwapSkill, nil})
+	inArr = append(inArr, inputStruct{&c.RightSwapSkill, nil})
+	inArr = append(inArr, inputStruct{&c.Appearances, nil})
 
 	for _, inData := range inArr {
 		if inData.f != nil {
@@ -91,6 +104,7 @@ func NewCharacter(r io.Reader) (*Character, error) {
 	return c, nil
 }
 
+//Fix changes struct for export
 func (c *Character) Fix() error {
 	if err := c.Header.Fix(c); err != nil {
 		return err
@@ -98,6 +112,7 @@ func (c *Character) Fix() error {
 	return nil
 }
 
+//ToWriter write not prepared for export byte struct to io.Writer
 func (c *Character) ToWriter(w io.Writer) error {
 	var values []interface{}
 	values = append(values, *c.Header)
@@ -117,6 +132,7 @@ func (c *Character) ToWriter(w io.Writer) error {
 	return nil
 }
 
+//ToWriterCorrect write prepared for export byte struct to io.Writer
 func (c *Character) ToWriterCorrect(w io.Writer) error {
 	if err := c.Fix(); err != nil {
 		return err
@@ -127,6 +143,7 @@ func (c *Character) ToWriterCorrect(w io.Writer) error {
 	return nil
 }
 
+//GetBytes return not prepared for export []byte
 func (c *Character) GetBytes() ([]byte, error) {
 	var buf bytes.Buffer
 	if err := c.ToWriter(&buf); err != nil {
@@ -135,6 +152,7 @@ func (c *Character) GetBytes() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
+//GetCorrectBytes return prepared for export []byte
 func (c *Character) GetCorrectBytes() ([]byte, error) {
 	var buf bytes.Buffer
 	bw := bufio.NewWriter(&buf)

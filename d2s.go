@@ -1,6 +1,7 @@
 package d2s
 
 import (
+	"fmt"
 	"github.com/vitalick/d2s/character"
 	"log"
 	"os"
@@ -26,9 +27,15 @@ func Open(filepath string) (*character.Character, error) {
 	return c, nil
 }
 
-//Save will create *.d2s file by filepath with Character struct
-func Save(c *character.Character, filepath string) error {
-	file, err := os.Create(filepath)
+//Save will create *.d2s file in folder with Character struct
+func Save(c *character.Character, folder string) error {
+	if len(c.Name) == 0 {
+		return character.ErrorBlankName
+	}
+	if len(folder) > 0 && folder[len(folder)-1:] != "/" {
+		folder = folder + "/"
+	}
+	file, err := os.Create(fmt.Sprintf("%s%s.d2s", folder, c.Name))
 	if err != nil {
 		log.Fatalln("Error while creating .d2s file")
 		return err
