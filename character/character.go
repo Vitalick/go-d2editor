@@ -26,6 +26,7 @@ type Character struct {
 	LeftSwapSkill  Skill       `json:"left_swap_skill"`
 	RightSwapSkill Skill       `json:"right_swap_skill"`
 	Appearances    Appearances `json:"appearances"`
+	Locations      *Locations  `json:"locations"`
 }
 
 type inputStruct struct {
@@ -82,6 +83,17 @@ func NewCharacter(r io.Reader) (*Character, error) {
 	inArr = append(inArr, inputStruct{&c.LeftSwapSkill, nil})
 	inArr = append(inArr, inputStruct{&c.RightSwapSkill, nil})
 	inArr = append(inArr, inputStruct{&c.Appearances, nil})
+	inArr = append(inArr, inputStruct{
+		nil,
+		func(r io.Reader, c *Character) error {
+			loc, er := NewLocations(r)
+			if er != nil {
+				return er
+			}
+			c.Locations = loc
+			return nil
+		},
+	})
 
 	for _, inData := range inArr {
 		if inData.f != nil {
@@ -124,6 +136,22 @@ func (c *Character) ToWriter(w io.Writer) error {
 	copy(charName[:], c.Name[:])
 	values = append(values, charName)
 	values = append(values, c.Status.GetFlags())
+	values = append(values, c.Progression)
+	values = append(values, c.Unk0x0026)
+	values = append(values, c.ClassId)
+	values = append(values, c.Unk0x0029)
+	values = append(values, c.Level)
+	values = append(values, c.Created)
+	values = append(values, c.LastPlayed)
+	values = append(values, c.Unk0x0034)
+	values = append(values, c.HotkeySkills)
+	values = append(values, c.LeftSkill)
+	values = append(values, c.RightSkill)
+	values = append(values, c.LeftSwapSkill)
+	values = append(values, c.RightSwapSkill)
+	values = append(values, c.Appearances)
+	values = append(values, c.Locations.GetPacked())
+
 	for _, val := range values {
 		if err := binary.Write(w, binaryEndian, val); err != nil {
 			return err
