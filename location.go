@@ -1,4 +1,4 @@
-package character
+package d2s
 
 //Location is information about difficult and opened acts on it
 type Location struct {

@@ -1,4 +1,4 @@
-package character
+package d2s
 
 import (
 	"bufio"
@@ -27,6 +27,10 @@ type Character struct {
 	RightSwapSkill Skill       `json:"right_swap_skill"`
 	Appearances    Appearances `json:"appearances"`
 	Locations      *Locations  `json:"locations"`
+	MapId          uint32      `json:"map_id"`
+	Unk0x00af      [2]byte     `json:"-"`
+	Mercenary      Mercenary   `json:"mercenary"`
+	RealmData      byte        `json:"-"`
 }
 
 type inputStruct struct {
@@ -83,6 +87,7 @@ func NewCharacter(r io.Reader) (*Character, error) {
 	inArr = append(inArr, inputStruct{&c.LeftSwapSkill, nil})
 	inArr = append(inArr, inputStruct{&c.RightSwapSkill, nil})
 	inArr = append(inArr, inputStruct{&c.Appearances, nil})
+
 	inArr = append(inArr, inputStruct{
 		nil,
 		func(r io.Reader, c *Character) error {
@@ -94,6 +99,11 @@ func NewCharacter(r io.Reader) (*Character, error) {
 			return nil
 		},
 	})
+
+	inArr = append(inArr, inputStruct{&c.MapId, nil})
+	inArr = append(inArr, inputStruct{&c.Unk0x00af, nil})
+	inArr = append(inArr, inputStruct{&c.Mercenary, nil})
+	inArr = append(inArr, inputStruct{&c.RealmData, nil})
 
 	for _, inData := range inArr {
 		if inData.f != nil {
@@ -112,6 +122,12 @@ func NewCharacter(r io.Reader) (*Character, error) {
 	}
 
 	c.Name = string(bytes.Trim(charName[:], "\x00"))
+
+	c.Unk0x0026 = [2]byte{0x0, 0x0}
+	c.Unk0x0029 = [2]byte{0x10, 0x1e}
+	c.Unk0x0034 = [4]byte{0xff, 0xff, 0xff, 0xff}
+	c.Unk0x00af = [2]byte{0x0, 0x0}
+	c.RealmData = 0x0
 
 	return c, nil
 }
@@ -151,6 +167,10 @@ func (c *Character) ToWriter(w io.Writer) error {
 	values = append(values, c.RightSwapSkill)
 	values = append(values, c.Appearances)
 	values = append(values, c.Locations.GetPacked())
+	values = append(values, c.MapId)
+	values = append(values, c.Unk0x00af)
+	values = append(values, c.Mercenary)
+	values = append(values, c.RealmData)
 
 	for _, val := range values {
 		if err := binary.Write(w, binaryEndian, val); err != nil {

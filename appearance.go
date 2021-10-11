@@ -1,4 +1,4 @@
-package character
+package d2s
 
 type Appearance struct {
 	Graphic byte `json:"graphic"`
