@@ -3,17 +3,18 @@ package quests
 import (
 	"bytes"
 	"encoding/binary"
+	"github.com/vitalick/d2s/consts"
 	"io"
 )
 
-type Difficulty [actsCount]Act
+type Difficulty [consts.ActsCount]Act
 
 //NewDifficulty returns Difficulty from packed bytes
 func NewDifficulty(r io.Reader) (Difficulty, error) {
 	d := Difficulty{}
 	var err error
 	for i := range d {
-		d[i], err = NewAct(r, ActId(i))
+		d[i], err = NewAct(r, consts.ActId(i))
 		if err != nil {
 			return d, err
 		}

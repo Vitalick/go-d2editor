@@ -2,6 +2,7 @@ package d2s
 
 import (
 	"encoding/binary"
+	"github.com/vitalick/d2s/consts"
 	"io"
 )
 
@@ -27,7 +28,7 @@ type Appearances struct {
 //NewAppearances ...
 func NewAppearances(r io.Reader) (*Appearances, error) {
 	a := &Appearances{}
-	if err := binary.Read(r, binaryEndian, a); err != nil {
+	if err := binary.Read(r, consts.BinaryEndian, a); err != nil {
 		return nil, err
 	}
 	return a, nil

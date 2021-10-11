@@ -2,6 +2,7 @@ package d2s
 
 import (
 	"encoding/binary"
+	"github.com/vitalick/d2s/consts"
 	"io"
 )
 
@@ -16,7 +17,7 @@ type Locations struct {
 
 func NewLocations(r io.Reader) (*Locations, error) {
 	var packedLocations [locationsCount]byte
-	if err := binary.Read(r, binaryEndian, &packedLocations); err != nil {
+	if err := binary.Read(r, consts.BinaryEndian, &packedLocations); err != nil {
 		return nil, err
 	}
 	return &Locations{

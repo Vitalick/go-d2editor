@@ -4,35 +4,38 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/binary"
+	"github.com/vitalick/d2s/consts"
 	"github.com/vitalick/d2s/quests"
+	"github.com/vitalick/d2s/waypoints"
 	"io"
 )
 
 type Character struct {
-	Header         *Header        `json:"header"`
-	ActiveWeapon   uint32         `json:"active_weapon"`
-	Name           string         `json:"name"`
-	Status         *Status        `json:"status"`
-	Progression    byte           `json:"-"`
-	Unk0x0026      [2]byte        `json:"-"`
-	ClassId        byte           `json:"class_id"`
-	Unk0x0029      [2]byte        `json:"-"`
-	Level          byte           `json:"level"`
-	Created        uint32         `json:"created"`
-	LastPlayed     uint32         `json:"last_played"`
-	Unk0x0034      [4]byte        `json:"-"`
-	HotkeySkills   [16]Skill      `json:"hotkey_skills"`
-	LeftSkill      Skill          `json:"left_skill"`
-	RightSkill     Skill          `json:"right_skill"`
-	LeftSwapSkill  Skill          `json:"left_swap_skill"`
-	RightSwapSkill Skill          `json:"right_swap_skill"`
-	Appearances    Appearances    `json:"appearances"`
-	Locations      *Locations     `json:"locations"`
-	MapId          uint32         `json:"map_id"`
-	Unk0x00af      [2]byte        `json:"-"`
-	Mercenary      Mercenary      `json:"mercenary"`
-	RealmData      [144]byte      `json:"-"`
-	Quests         *quests.Quests `json:"quests"`
+	Header         *Header              `json:"header"`
+	ActiveWeapon   uint32               `json:"active_weapon"`
+	Name           string               `json:"name"`
+	Status         *Status              `json:"status"`
+	Progression    byte                 `json:"-"`
+	Unk0x0026      [2]byte              `json:"-"`
+	ClassId        byte                 `json:"class_id"`
+	Unk0x0029      [2]byte              `json:"-"`
+	Level          byte                 `json:"level"`
+	Created        uint32               `json:"created"`
+	LastPlayed     uint32               `json:"last_played"`
+	Unk0x0034      [4]byte              `json:"-"`
+	HotkeySkills   [16]Skill            `json:"hotkey_skills"`
+	LeftSkill      Skill                `json:"left_skill"`
+	RightSkill     Skill                `json:"right_skill"`
+	LeftSwapSkill  Skill                `json:"left_swap_skill"`
+	RightSwapSkill Skill                `json:"right_swap_skill"`
+	Appearances    Appearances          `json:"appearances"`
+	Locations      *Locations           `json:"locations"`
+	MapId          uint32               `json:"map_id"`
+	Unk0x00af      [2]byte              `json:"-"`
+	Mercenary      Mercenary            `json:"mercenary"`
+	RealmData      [144]byte            `json:"-"`
+	Quests         *quests.Quests       `json:"quests"`
+	Waypoints      *waypoints.Waypoints `json:"waypoints"`
 }
 
 type inputStruct struct {
@@ -119,6 +122,18 @@ func NewCharacter(r io.Reader) (*Character, error) {
 		},
 	})
 
+	inArr = append(inArr, inputStruct{
+		nil,
+		func(r io.Reader, c *Character) error {
+			w, er := waypoints.NewWaypoints(r)
+			if er != nil {
+				return er
+			}
+			c.Waypoints = w
+			return nil
+		},
+	})
+
 	for _, inData := range inArr {
 		if inData.f != nil {
 			err = inData.f(r, c)
@@ -128,7 +143,7 @@ func NewCharacter(r io.Reader) (*Character, error) {
 			continue
 		}
 		if inData.data != nil {
-			err = binary.Read(r, binaryEndian, inData.data)
+			err = binary.Read(r, consts.BinaryEndian, inData.data)
 			if err != nil {
 				return nil, err
 			}
@@ -190,9 +205,14 @@ func (c *Character) ToWriter(w io.Writer) error {
 		return err
 	}
 	values = append(values, packedQuests)
+	packedWaypoints, err := c.Waypoints.GetPacked()
+	if err != nil {
+		return err
+	}
+	values = append(values, packedWaypoints)
 
 	for _, val := range values {
-		if err := binary.Write(w, binaryEndian, val); err != nil {
+		if err := binary.Write(w, consts.BinaryEndian, val); err != nil {
 			return err
 		}
 	}

@@ -1,16 +1,17 @@
 package quests
 
 import (
+	"github.com/vitalick/d2s/consts"
 	"io"
 )
 
 type Act struct {
-	Id     ActId
+	Id     consts.ActId
 	Quests []Quest
 }
 
 //NewAct returns Act from packed bytes
-func NewAct(r io.Reader, actId ActId) (Act, error) {
+func NewAct(r io.Reader, actId consts.ActId) (Act, error) {
 
 	a := Act{Id: actId}
 	count := a.QuestCount()
@@ -30,12 +31,12 @@ func (a *Act) QuestCount() byte {
 	return actCountTable[a.Id]
 }
 
-//GetPacked returns packed Act into []uint16
-func (a *Act) GetPacked() []uint16 {
-	var out []uint16
+//GetPacked returns packed Act into []byte
+func (a *Act) GetPacked() []byte {
+	var out []byte
 	count := a.QuestCount()
 	for j := 0; byte(j) < count; j++ {
-		out = append(out, a.Quests[j].GetPacked())
+		out = append(out, a.Quests[j].GetPacked()...)
 	}
 	return out
 }

@@ -1,7 +1,7 @@
 package quests
 
 import (
-	"encoding/binary"
+	"github.com/vitalick/d2s/bitslice"
 	"io"
 )
 
@@ -14,28 +14,20 @@ type Quest [questFlagCount]bool
 //NewQuest returns Quest from packed bytes
 func NewQuest(r io.Reader) (Quest, error) {
 
-	var b uint16
 	q := Quest{}
-	if err := binary.Read(r, binaryEndian, &b); err != nil {
+	bs, err := bitslice.NewBitSliceFromReader(r, binaryEndian, 2)
+	if err != nil {
 		return q, err
 	}
-	for i := range q {
-		q[i] = (b<<questMove)>>questMove == 1
-		b = b >> 1
-	}
+	//fmt.Println(bs.Slice)
+	copy(q[:], bs.Slice[:questFlagCount])
+	//fmt.Println(q)
 
 	return q, nil
 }
 
-//GetPacked returns packed Quest into one uint16
-func (q *Quest) GetPacked() uint16 {
-	var packed uint16
-	var flagTrue uint16 = 1
-	for _, flag := range q {
-		if flag {
-			packed |= flagTrue
-		}
-		flagTrue = flagTrue << 1
-	}
-	return packed
+//GetPacked returns packed Quest into []byte
+func (q *Quest) GetPacked() []byte {
+	bs := bitslice.NewBitSliceFromBool(q[:], binaryEndian)
+	return bs.ToBytes()
 }

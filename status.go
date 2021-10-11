@@ -2,6 +2,7 @@ package d2s
 
 import (
 	"encoding/binary"
+	"github.com/vitalick/d2s/consts"
 	"io"
 )
 
@@ -23,7 +24,7 @@ type Status struct {
 //NewStatus ...
 func NewStatus(r io.Reader) (*Status, error) {
 	var flags byte
-	if err := binary.Read(r, binaryEndian, &flags); err != nil {
+	if err := binary.Read(r, consts.BinaryEndian, &flags); err != nil {
 		return nil, err
 	}
 	s := &Status{

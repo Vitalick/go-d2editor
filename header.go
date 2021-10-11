@@ -2,6 +2,7 @@ package d2s
 
 import (
 	"encoding/binary"
+	"github.com/vitalick/d2s/consts"
 	"io"
 )
 
@@ -17,7 +18,7 @@ type Header struct {
 //NewHeader returns Header from packed bytes
 func NewHeader(r io.Reader) (*Header, error) {
 	h := &Header{}
-	if err := binary.Read(r, binaryEndian, h); err != nil {
+	if err := binary.Read(r, consts.BinaryEndian, h); err != nil {
 		return nil, err
 	}
 	if h.Magic == 0 {
