@@ -14,7 +14,7 @@ type Header struct {
 	Checksum uint32 `json:"checksum"`
 }
 
-//NewHeader Like Read func
+//NewHeader returns Header from packed bytes
 func NewHeader(r io.Reader) (*Header, error) {
 	h := &Header{}
 	if err := binary.Read(r, binaryEndian, h); err != nil {
