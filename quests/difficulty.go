@@ -3,30 +3,56 @@ package quests
 import (
 	"bytes"
 	"encoding/binary"
+	"encoding/json"
 	"github.com/vitalick/d2s/consts"
+	"github.com/vitalick/d2s/utils"
 	"io"
 )
 
-type Difficulty [consts.ActsCount]Act
+type Difficulty []Act
 
 //NewDifficulty returns Difficulty from packed bytes
 func NewDifficulty(r io.Reader) (Difficulty, error) {
 	d := Difficulty{}
-	var err error
-	for i := range d {
-		d[i], err = NewAct(r, consts.ActId(i))
+	for i := range make([]bool, consts.ActsCount) {
+		act, err := NewAct(r, consts.ActId(i))
 		if err != nil {
 			return d, err
 		}
+		d = append(d, act)
 	}
 	return d, nil
+}
+
+//GetAct returns Act in current Difficulty
+func (d *Difficulty) GetAct(a consts.ActId) *Act {
+	return &(*d)[a]
+}
+
+//GetQuest returns Quest in current Difficulty
+func (d *Difficulty) GetQuest(a consts.ActId, q ActQuest) *Quest {
+	return d.GetAct(a).GetQuest(q)
+}
+
+// ExportMap ...
+func (d Difficulty) ExportMap() *map[string]interface{} {
+	exportMap := map[string]interface{}{}
+	for _, a := range d {
+		exportMap[utils.TitleToJsonTitle(a.String())] = a.ExportMap()
+	}
+	return &exportMap
+}
+
+// MarshalJSON ...
+func (d Difficulty) MarshalJSON() ([]byte, error) {
+	return json.Marshal(d.ExportMap())
 }
 
 //GetPacked returns packed Difficulty into []byte
 func (d *Difficulty) GetPacked() ([]byte, error) {
 	var buf bytes.Buffer
 
-	for _, act := range d {
+	for _, act := range *d {
 		if err := binary.Write(&buf, binaryEndian, act.GetPacked()); err != nil {
 			return nil, err
 		}

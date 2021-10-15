@@ -13,21 +13,21 @@ const (
 )
 
 type Waypoints struct {
-	Header    [waypointsHeaderLength]byte `json:"header"`
-	Magic     [waypointsMagicLength]byte  `json:"magic"`
-	Normal    Difficulty                  `json:"normal"`
-	Nightmare Difficulty                  `json:"nightmare"`
-	Hell      Difficulty                  `json:"hell"`
+	header    [waypointsHeaderLength]byte
+	magic     [waypointsMagicLength]byte
+	Normal    Difficulty `json:"normal"`
+	Nightmare Difficulty `json:"nightmare"`
+	Hell      Difficulty `json:"hell"`
 }
 
 //NewWaypoints returns Waypoints from packed bytes
 func NewWaypoints(r io.Reader) (*Waypoints, error) {
 	q := &Waypoints{}
 
-	if err := binary.Read(r, binaryEndian, &q.Header); err != nil {
+	if err := binary.Read(r, binaryEndian, &q.header); err != nil {
 		return nil, err
 	}
-	if err := binary.Read(r, binaryEndian, &q.Magic); err != nil {
+	if err := binary.Read(r, binaryEndian, &q.magic); err != nil {
 		return nil, err
 	}
 	var err error
@@ -43,14 +43,14 @@ func NewWaypoints(r io.Reader) (*Waypoints, error) {
 	if err != nil {
 		return nil, err
 	}
-	headerString := string(bytes.Trim(q.Header[:], "\x00"))
+	headerString := string(bytes.Trim(q.header[:], "\x00"))
 	if headerString != defaultWaypointsHeader {
 		var charName [waypointsHeaderLength]byte
 		copy(charName[:], defaultWaypointsHeader[:])
-		q.Header = charName
+		q.header = charName
 	}
-	if q.Magic == [waypointsMagicLength]byte{} {
-		q.Magic = [waypointsMagicLength]byte{6, 0, 0, 0, 42, 1}
+	if q.magic == [waypointsMagicLength]byte{} {
+		q.magic = [waypointsMagicLength]byte{6, 0, 0, 0, 42, 1}
 	}
 	return q, nil
 }
@@ -61,10 +61,10 @@ func (q *Waypoints) GetPacked() ([]byte, error) {
 	var packedAct []byte
 	var err error
 
-	if err = binary.Write(&buf, binaryEndian, q.Header); err != nil {
+	if err = binary.Write(&buf, binaryEndian, q.header); err != nil {
 		return nil, err
 	}
-	if err = binary.Write(&buf, binaryEndian, q.Magic); err != nil {
+	if err = binary.Write(&buf, binaryEndian, q.magic); err != nil {
 		return nil, err
 	}
 

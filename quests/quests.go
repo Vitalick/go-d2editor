@@ -13,21 +13,21 @@ const (
 )
 
 type Quests struct {
-	Header    [questsHeaderLength]byte `json:"header"`
-	Magic     [questsMagicLength]byte  `json:"magic"`
-	Normal    Difficulty               `json:"normal"`
-	Nightmare Difficulty               `json:"nightmare"`
-	Hell      Difficulty               `json:"hell"`
+	header    [questsHeaderLength]byte
+	magic     [questsMagicLength]byte
+	Normal    Difficulty `json:"normal"`
+	Nightmare Difficulty `json:"nightmare"`
+	Hell      Difficulty `json:"hell"`
 }
 
 //NewQuests returns Quests from packed bytes
 func NewQuests(r io.Reader) (*Quests, error) {
 	q := &Quests{}
 
-	if err := binary.Read(r, binaryEndian, &q.Header); err != nil {
+	if err := binary.Read(r, binaryEndian, &q.header); err != nil {
 		return nil, err
 	}
-	if err := binary.Read(r, binaryEndian, &q.Magic); err != nil {
+	if err := binary.Read(r, binaryEndian, &q.magic); err != nil {
 		return nil, err
 	}
 	var err error
@@ -43,14 +43,14 @@ func NewQuests(r io.Reader) (*Quests, error) {
 	if err != nil {
 		return nil, err
 	}
-	headerString := string(bytes.Trim(q.Header[:], "\x00"))
+	headerString := string(bytes.Trim(q.header[:], "\x00"))
 	if headerString != defaultQuestsHeader {
 		var charName [questsHeaderLength]byte
 		copy(charName[:], defaultQuestsHeader[:])
-		q.Header = charName
+		q.header = charName
 	}
-	if q.Magic == [questsMagicLength]byte{} {
-		q.Magic = [questsMagicLength]byte{6, 0, 0, 0, 42, 1}
+	if q.magic == [questsMagicLength]byte{} {
+		q.magic = [questsMagicLength]byte{6, 0, 0, 0, 42, 1}
 	}
 	return q, nil
 }
@@ -61,10 +61,10 @@ func (q *Quests) GetPacked() ([]byte, error) {
 	var packedAct []byte
 	var err error
 
-	if err = binary.Write(&buf, binaryEndian, q.Header); err != nil {
+	if err = binary.Write(&buf, binaryEndian, q.header); err != nil {
 		return nil, err
 	}
-	if err = binary.Write(&buf, binaryEndian, q.Magic); err != nil {
+	if err = binary.Write(&buf, binaryEndian, q.magic); err != nil {
 		return nil, err
 	}
 

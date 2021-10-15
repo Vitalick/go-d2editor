@@ -3,29 +3,32 @@ package waypoints
 import (
 	"bytes"
 	"encoding/binary"
+	"encoding/json"
 	"github.com/vitalick/d2s/bitslice"
+	"github.com/vitalick/d2s/consts"
+	"github.com/vitalick/d2s/utils"
 	"io"
 )
 
 type Difficulty struct {
-	Header        [2]byte
-	ActsWaypoints []bool
-	Magic         [17]byte
+	header        [2]byte
+	actsWaypoints []bool
+	magic         [17]byte
 }
 
 //NewDifficulty returns Difficulty from packed bytes
 func NewDifficulty(r io.Reader) (Difficulty, error) {
 	d := Difficulty{}
 
-	if err := binary.Read(r, binaryEndian, &d.Header); err != nil {
+	if err := binary.Read(r, binaryEndian, &d.header); err != nil {
 		return d, err
 	}
 	bs, err := bitslice.NewBitSliceFromReader(r, binaryEndian, 5)
 	if err != nil {
 		return d, err
 	}
-	d.ActsWaypoints = bs.Slice
-	err = binary.Read(r, binaryEndian, &d.Magic)
+	d.actsWaypoints = bs.Slice
+	err = binary.Read(r, binaryEndian, &d.magic)
 	if err != nil {
 		return d, err
 	}
@@ -33,18 +36,43 @@ func NewDifficulty(r io.Reader) (Difficulty, error) {
 	return d, nil
 }
 
+func (d *Difficulty) GetWaypointState(w ActWaypoint) bool {
+	return d.actsWaypoints[w]
+}
+
+func (d *Difficulty) SetWaypointState(w ActWaypoint, val bool) {
+	d.actsWaypoints[w] = val
+}
+
+func (d *Difficulty) GetActWaypoints(a consts.ActId) []ActWaypoint {
+	return actWaypointsMap[a]
+}
+
+// MarshalJSON ...
+func (d *Difficulty) MarshalJSON() ([]byte, error) {
+	exportMap := map[string]map[string]bool{}
+	for act, waypoints := range actWaypointsMap {
+		actMap := map[string]bool{}
+		for _, wp := range waypoints {
+			actMap[utils.TitleToJsonTitle(wp.String())] = d.actsWaypoints[wp]
+		}
+		exportMap[utils.TitleToJsonTitle(act.String())] = actMap
+	}
+	return json.Marshal(&exportMap)
+}
+
 //GetPacked returns packed Difficulty into []byte
 func (d *Difficulty) GetPacked() ([]byte, error) {
 	var buf bytes.Buffer
-	if err := binary.Write(&buf, binaryEndian, d.Header); err != nil {
+	if err := binary.Write(&buf, binaryEndian, d.header); err != nil {
 		return nil, err
 	}
-	bs := bitslice.NewBitSliceFromBool(d.ActsWaypoints, binaryEndian)
+	bs := bitslice.NewBitSliceFromBool(d.actsWaypoints, binaryEndian)
 	if err := bs.ToBuffer(&buf); err != nil {
 		return nil, err
 	}
 
-	if err := binary.Write(&buf, binaryEndian, d.Magic); err != nil {
+	if err := binary.Write(&buf, binaryEndian, d.magic); err != nil {
 		return nil, err
 	}
 	return buf.Bytes(), nil

@@ -17,4 +17,16 @@ const (
 	Act5
 )
 
-const ActsCount = 5
+var actsMap = map[ActId]string{
+	Act1: "Act 1",
+	Act2: "Act 2",
+	Act3: "Act 3",
+	Act4: "Act 4",
+	Act5: "Act 5",
+}
+
+var ActsCount = len(actsMap)
+
+func (a ActId) String() string {
+	return actsMap[a]
+}
