@@ -10,6 +10,7 @@ import (
 	"io"
 )
 
+//Difficulty ...
 type Difficulty struct {
 	header        [2]byte
 	actsWaypoints []bool
@@ -36,15 +37,18 @@ func NewDifficulty(r io.Reader) (Difficulty, error) {
 	return d, nil
 }
 
+//GetWaypointState ...
 func (d *Difficulty) GetWaypointState(w ActWaypoint) bool {
 	return d.actsWaypoints[w]
 }
 
+//SetWaypointState ...
 func (d *Difficulty) SetWaypointState(w ActWaypoint, val bool) {
 	d.actsWaypoints[w] = val
 }
 
-func (d *Difficulty) GetActWaypoints(a consts.ActId) []ActWaypoint {
+//GetActWaypoints ...
+func (d *Difficulty) GetActWaypoints(a consts.ActID) []ActWaypoint {
 	return actWaypointsMap[a]
 }
 
@@ -54,9 +58,9 @@ func (d *Difficulty) MarshalJSON() ([]byte, error) {
 	for act, waypoints := range actWaypointsMap {
 		actMap := map[string]bool{}
 		for _, wp := range waypoints {
-			actMap[utils.TitleToJsonTitle(wp.String())] = d.actsWaypoints[wp]
+			actMap[utils.TitleToJSONTitle(wp.String())] = d.actsWaypoints[wp]
 		}
-		exportMap[utils.TitleToJsonTitle(act.String())] = actMap
+		exportMap[utils.TitleToJSONTitle(act.String())] = actMap
 	}
 	return json.Marshal(&exportMap)
 }

@@ -10,8 +10,11 @@ var (
 
 //ActWaypoint types for indexing Quest in Act
 type ActWaypoint byte
+
+//QuestFlag ...
 type QuestFlag byte
 
+//ActWaypoint list
 const (
 	Act1RogueEncampement ActWaypoint = iota
 	Act1ColdPlains
@@ -60,7 +63,7 @@ const (
 
 var waypointsMap = map[ActWaypoint]struct {
 	name string
-	act  consts.ActId
+	act  consts.ActID
 }{
 	Act1RogueEncampement:       {"Rogue Encampement", consts.Act1},
 	Act1ColdPlains:             {"Cold Plains", consts.Act1},
@@ -103,7 +106,7 @@ var waypointsMap = map[ActWaypoint]struct {
 	Act5WorldstoneKeepLvl2:     {"Worldstone Keep Lvl 2", consts.Act5},
 }
 
-var actWaypointsMap = map[consts.ActId][]ActWaypoint{
+var actWaypointsMap = map[consts.ActID][]ActWaypoint{
 	consts.Act1: {
 		Act1RogueEncampement,
 		Act1ColdPlains,
@@ -159,6 +162,7 @@ func (aw ActWaypoint) String() string {
 	return waypointsMap[aw].name
 }
 
-func (aw ActWaypoint) ActId() consts.ActId {
+//ActID returns consts.ActID
+func (aw ActWaypoint) ActID() consts.ActID {
 	return waypointsMap[aw].act
 }

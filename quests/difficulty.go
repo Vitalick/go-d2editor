@@ -9,13 +9,14 @@ import (
 	"io"
 )
 
+//Difficulty ...
 type Difficulty []Act
 
 //NewDifficulty returns Difficulty from packed bytes
 func NewDifficulty(r io.Reader) (Difficulty, error) {
 	d := Difficulty{}
 	for i := range make([]bool, consts.ActsCount) {
-		act, err := NewAct(r, consts.ActId(i))
+		act, err := NewAct(r, consts.ActID(i))
 		if err != nil {
 			return d, err
 		}
@@ -25,12 +26,12 @@ func NewDifficulty(r io.Reader) (Difficulty, error) {
 }
 
 //GetAct returns Act in current Difficulty
-func (d *Difficulty) GetAct(a consts.ActId) *Act {
+func (d *Difficulty) GetAct(a consts.ActID) *Act {
 	return &(*d)[a]
 }
 
 //GetQuest returns Quest in current Difficulty
-func (d *Difficulty) GetQuest(a consts.ActId, q ActQuest) *Quest {
+func (d *Difficulty) GetQuest(a consts.ActID, q ActQuest) *Quest {
 	return d.GetAct(a).GetQuest(q)
 }
 
@@ -38,7 +39,7 @@ func (d *Difficulty) GetQuest(a consts.ActId, q ActQuest) *Quest {
 func (d Difficulty) ExportMap() *map[string]interface{} {
 	exportMap := map[string]interface{}{}
 	for _, a := range d {
-		exportMap[utils.TitleToJsonTitle(a.String())] = a.ExportMap()
+		exportMap[utils.TitleToJSONTitle(a.String())] = a.ExportMap()
 	}
 	return &exportMap
 }

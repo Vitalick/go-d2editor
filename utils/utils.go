@@ -2,6 +2,7 @@ package utils
 
 import "strings"
 
-func TitleToJsonTitle(s string) string {
+//TitleToJSONTitle ...
+func TitleToJSONTitle(s string) string {
 	return strings.Replace(strings.ToLower(s), " ", "_", -1)
 }

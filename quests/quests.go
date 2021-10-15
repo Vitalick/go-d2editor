@@ -12,6 +12,7 @@ const (
 	questsMagicLength   = 6
 )
 
+//Quests ...
 type Quests struct {
 	header    [questsHeaderLength]byte
 	magic     [questsMagicLength]byte

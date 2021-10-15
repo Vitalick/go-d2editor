@@ -6,22 +6,26 @@ import (
 	"io"
 )
 
+//BitSlice slice with bits
 type BitSlice struct {
 	Slice     []bool
 	ByteOrder binary.ByteOrder
 }
 
+//NewBitSliceFromBool returns BitSlice exported from []bool
 func NewBitSliceFromBool(b []bool, bo binary.ByteOrder) *BitSlice {
 	return &BitSlice{
 		b, bo,
 	}
 }
 
+//NewBitSliceFromBytes returns BitSlice exported from []byte
 func NewBitSliceFromBytes(b []byte, bo binary.ByteOrder) (*BitSlice, error) {
 	buf := bytes.NewBuffer(b)
 	return NewBitSliceFromReader(buf, bo, uint(len(b)))
 }
 
+//NewBitSliceFromReader returns BitSlice exported from io.Reader
 func NewBitSliceFromReader(r io.Reader, bo binary.ByteOrder, bytesSize uint) (*BitSlice, error) {
 	var inBytes = make([]byte, bytesSize)
 	err := binary.Read(r, bo, &inBytes)
@@ -48,13 +52,14 @@ func NewBitSliceFromReader(r io.Reader, bo binary.ByteOrder, bytesSize uint) (*B
 	}
 
 	for i, b := range inBytes {
-		for j, _ := range [8]bool{} {
+		for j := range [8]bool{} {
 			nowFunc(&b, 8*i+j)
 		}
 	}
 	return bs, nil
 }
 
+//ToBytes returns []byte from BitSlice
 func (s BitSlice) ToBytes() []byte {
 	var packed []byte
 	var flagTrue byte
@@ -87,6 +92,7 @@ func (s BitSlice) ToBytes() []byte {
 	return packed
 }
 
+//ToBuffer write bytes from BitSlice to io.Writer
 func (s BitSlice) ToBuffer(w io.Writer) error {
 	err := binary.Write(w, s.ByteOrder, s.ToBytes())
 	if err != nil {

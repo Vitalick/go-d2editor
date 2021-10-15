@@ -12,6 +12,7 @@ const (
 	waypointsMagicLength   = 6
 )
 
+//Waypoints ...
 type Waypoints struct {
 	header    [waypointsHeaderLength]byte
 	magic     [waypointsMagicLength]byte

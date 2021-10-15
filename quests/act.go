@@ -7,18 +7,19 @@ import (
 	"io"
 )
 
+//Act ...
 type Act struct {
-	id     consts.ActId
+	id     consts.ActID
 	quests []Quest
 }
 
 //NewAct returns Act from packed bytes
-func NewAct(r io.Reader, actId consts.ActId) (Act, error) {
+func NewAct(r io.Reader, actID consts.ActID) (Act, error) {
 
-	a := Act{id: actId}
+	a := Act{id: actID}
 	count := a.QuestCount()
 	for j := 0; j < count; j++ {
-		q, err := NewQuest(r, actId, ActQuest(j))
+		q, err := NewQuest(r, actID, ActQuest(j))
 		if err != nil {
 			return a, err
 		}
@@ -47,7 +48,7 @@ func (a *Act) String() string {
 func (a *Act) ExportMap() *map[string]interface{} {
 	exportMap := map[string]interface{}{}
 	for _, q := range a.quests {
-		exportMap[utils.TitleToJsonTitle(q.String())] = q.ExportMap()
+		exportMap[utils.TitleToJSONTitle(q.String())] = q.ExportMap()
 	}
 	return &exportMap
 }

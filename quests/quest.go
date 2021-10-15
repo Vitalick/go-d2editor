@@ -8,35 +8,34 @@ import (
 	"io"
 )
 
+//Quest ...
 type Quest struct {
-	actId   consts.ActId
-	questId ActQuest
+	actID   consts.ActID
+	questID ActQuest
 	flags   []bool
 }
 
 //NewQuest returns Quest from packed bytes
-func NewQuest(r io.Reader, a consts.ActId, qId ActQuest) (*Quest, error) {
-
-	q := &Quest{actId: a, questId: qId, flags: make([]bool, questFlagCount)}
+func NewQuest(r io.Reader, a consts.ActID, qID ActQuest) (*Quest, error) {
+	q := &Quest{actID: a, questID: qID, flags: make([]bool, questFlagCount)}
 	bs, err := bitslice.NewBitSliceFromReader(r, binaryEndian, 2)
 	if err != nil {
 		return nil, err
 	}
-	//fmt.Println(bs.Slice)
 	q.flags = bs.Slice[:questFlagCount]
-	//fmt.Println(q)
-
 	return q, nil
 }
 
 func (q *Quest) String() string {
-	return actQuestsMap[q.actId][q.questId]
+	return actQuestsMap[q.actID][q.questID]
 }
 
+//GetFlag ...
 func (q *Quest) GetFlag(flag QuestFlag) bool {
 	return q.flags[flag]
 }
 
+//SetFlag ...
 func (q *Quest) SetFlag(flag QuestFlag, val bool) {
 	q.flags[flag] = val
 }
@@ -46,7 +45,7 @@ func (q *Quest) ExportMap() *map[string]bool {
 	exportMap := map[string]bool{}
 	for flag := range make([]bool, questFlagCount) {
 		qf := QuestFlag(flag)
-		exportMap[utils.TitleToJsonTitle(qf.String())] = q.GetFlag(qf)
+		exportMap[utils.TitleToJSONTitle(qf.String())] = q.GetFlag(qf)
 	}
 	return &exportMap
 }

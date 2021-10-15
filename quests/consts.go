@@ -11,6 +11,7 @@ var (
 //ActQuest types for indexing Quest in Act
 type ActQuest byte
 
+//Act 1 quests
 const (
 	Act1Introduction ActQuest = iota
 	Act1DenOfEvil
@@ -22,6 +23,7 @@ const (
 	Act1Completion
 )
 
+//Act 2 quests
 const (
 	Act2Introduction ActQuest = iota
 	Act2RadamentsLair
@@ -33,6 +35,7 @@ const (
 	Act2Completion
 )
 
+//Act 3 quests
 const (
 	Act3Introduction ActQuest = iota
 	Act3LamEsensTome
@@ -44,6 +47,7 @@ const (
 	Act3Completion
 )
 
+//Act 4 quests
 const (
 	Act4Introduction ActQuest = iota
 	Act4TheFallenAngel
@@ -57,6 +61,7 @@ const (
 	Act4Extra3
 )
 
+//Act 5 quests
 const (
 	Act5Introduction ActQuest = iota
 
@@ -82,7 +87,7 @@ const (
 	Act5Extra8
 )
 
-var actQuestsMap = map[consts.ActId]map[ActQuest]string{
+var actQuestsMap = map[consts.ActID]map[ActQuest]string{
 	consts.Act1: {
 		Act1Introduction:          "Introduction",
 		Act1DenOfEvil:             "Den Of Evil",
@@ -143,7 +148,7 @@ var actQuestsMap = map[consts.ActId]map[ActQuest]string{
 	},
 }
 
-var actLengths = map[consts.ActId]int{
+var actLengths = map[consts.ActID]int{
 	consts.Act1: len(actQuestsMap[consts.Act1]),
 	consts.Act2: len(actQuestsMap[consts.Act2]),
 	consts.Act3: len(actQuestsMap[consts.Act3]),
@@ -151,8 +156,10 @@ var actLengths = map[consts.ActId]int{
 	consts.Act5: len(actQuestsMap[consts.Act5]),
 }
 
+//QuestFlag ...
 type QuestFlag byte
 
+//Types of QuestFlag
 const (
 	FlagRewardGranted QuestFlag = iota
 	FlagRewardPending
