@@ -8,6 +8,7 @@ import (
 
 const defaultMagic = 0xAA55AA55
 
+//Header ...
 type Header struct {
 	Magic    uint32 `json:"magic"`
 	Version  uint32 `json:"version"`

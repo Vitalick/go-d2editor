@@ -14,6 +14,7 @@ const (
 	ladderByte    = firstByte << 6
 )
 
+//Status ...
 type Status struct {
 	IsHardcore  bool `json:"is_hardcore"`
 	IsDead      bool `json:"is_dead"`

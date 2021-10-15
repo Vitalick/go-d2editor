@@ -10,6 +10,7 @@ import (
 	"io"
 )
 
+//Character ...
 type Character struct {
 	Header         *Header              `json:"header"`
 	ActiveWeapon   uint32               `json:"active_weapon"`
@@ -17,7 +18,7 @@ type Character struct {
 	Status         *Status              `json:"status"`
 	Progression    byte                 `json:"-"`
 	Unk0x0026      [2]byte              `json:"-"`
-	ClassId        byte                 `json:"class_id"`
+	ClassID        byte                 `json:"class_id"`
 	Unk0x0029      [2]byte              `json:"-"`
 	Level          byte                 `json:"level"`
 	Created        uint32               `json:"created"`
@@ -30,7 +31,7 @@ type Character struct {
 	RightSwapSkill Skill                `json:"right_swap_skill"`
 	Appearances    Appearances          `json:"appearances"`
 	Locations      *Locations           `json:"locations"`
-	MapId          uint32               `json:"map_id"`
+	MapID          uint32               `json:"map_id"`
 	Unk0x00af      [2]byte              `json:"-"`
 	Mercenary      Mercenary            `json:"mercenary"`
 	RealmData      [144]byte            `json:"-"`
@@ -80,7 +81,7 @@ func NewCharacter(r io.Reader) (*Character, error) {
 
 	inArr = append(inArr, inputStruct{&c.Progression, nil})
 	inArr = append(inArr, inputStruct{&c.Unk0x0026, nil})
-	inArr = append(inArr, inputStruct{&c.ClassId, nil})
+	inArr = append(inArr, inputStruct{&c.ClassID, nil})
 	inArr = append(inArr, inputStruct{&c.Unk0x0029, nil})
 	inArr = append(inArr, inputStruct{&c.Level, nil})
 	inArr = append(inArr, inputStruct{&c.Created, nil})
@@ -105,7 +106,7 @@ func NewCharacter(r io.Reader) (*Character, error) {
 		},
 	})
 
-	inArr = append(inArr, inputStruct{&c.MapId, nil})
+	inArr = append(inArr, inputStruct{&c.MapID, nil})
 	inArr = append(inArr, inputStruct{&c.Unk0x00af, nil})
 	inArr = append(inArr, inputStruct{&c.Mercenary, nil})
 	inArr = append(inArr, inputStruct{&c.RealmData, nil})
@@ -183,7 +184,7 @@ func (c *Character) ToWriter(w io.Writer) error {
 	values = append(values, c.Status.GetFlags())
 	values = append(values, c.Progression)
 	values = append(values, c.Unk0x0026)
-	values = append(values, c.ClassId)
+	values = append(values, c.ClassID)
 	values = append(values, c.Unk0x0029)
 	values = append(values, c.Level)
 	values = append(values, c.Created)
@@ -196,7 +197,7 @@ func (c *Character) ToWriter(w io.Writer) error {
 	values = append(values, c.RightSwapSkill)
 	values = append(values, c.Appearances)
 	values = append(values, c.Locations.GetPacked())
-	values = append(values, c.MapId)
+	values = append(values, c.MapID)
 	values = append(values, c.Unk0x00af)
 	values = append(values, c.Mercenary)
 	values = append(values, c.RealmData)

@@ -15,6 +15,7 @@ type Locations struct {
 	Hell      Location `json:"hell"`
 }
 
+//NewLocations create new Locations from io.Reader
 func NewLocations(r io.Reader) (*Locations, error) {
 	var packedLocations [locationsCount]byte
 	if err := binary.Read(r, consts.BinaryEndian, &packedLocations); err != nil {

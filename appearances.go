@@ -1,11 +1,6 @@
 package d2s
 
-import (
-	"encoding/binary"
-	"github.com/vitalick/d2s/consts"
-	"io"
-)
-
+//Appearances ...
 type Appearances struct {
 	Head      Appearance `json:"head,omitempty"`
 	Torso     Appearance `json:"torso,omitempty"`
@@ -23,13 +18,4 @@ type Appearances struct {
 	Special6  Appearance `json:"special_6,omitempty"`
 	Special7  Appearance `json:"special_7,omitempty"`
 	Special8  Appearance `json:"special_8,omitempty"`
-}
-
-//NewAppearances ...
-func NewAppearances(r io.Reader) (*Appearances, error) {
-	a := &Appearances{}
-	if err := binary.Read(r, consts.BinaryEndian, a); err != nil {
-		return nil, err
-	}
-	return a, nil
 }
