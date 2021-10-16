@@ -6,6 +6,45 @@
 Simple Go package for reading and writing Diablo 2 saves. Supports version 1.10 through Diablo II: Resurrected (1.15).
 Supports reading both d2s (player saves) ~~and d2i (shared stash)~~ files.
 
+## Installation
+
+To install the package, use the following:
+
+```bash
+go get github.com/vitalick/d2s
+```
+
+To install command line program, use the following:
+
+```bash
+go install github.com/vitalick/d2s/d2s-conv@latest
+```
+
+## Usage
+
+### CLI
+
+For convert JSON to .d2s, use the following:
+```bash
+d2s-conv -fromjson <input files>
+```
+
+For convert .d2s to JSON, use the following:
+```bash
+d2s-conv -tojson <input files>
+```
+
+To specify the path to the output folder, we use the following:
+```bash
+d2s-conv -fromjson -o <output folder> <input files>
+d2s-conv -tojson -o <output folder> <input files>
+```
+
+### As package
+
+Coming soon...
+
+
 ## Roadmap
 
 <details>
