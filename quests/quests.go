@@ -3,6 +3,7 @@ package quests
 import (
 	"bytes"
 	"encoding/binary"
+	"errors"
 	"io"
 )
 
@@ -15,6 +16,7 @@ const (
 var (
 	defaultQuestsHeader = [questsHeaderLength]byte{}
 	defaultQuestsMagic  = [questsMagicLength]byte{6, 0, 0, 0, 42, 1}
+	wrongHeader         = errors.New("wrong quests header")
 )
 
 func init() {
@@ -76,9 +78,9 @@ func NewQuests(r io.Reader) (*Quests, error) {
 	}
 	headerString := string(bytes.Trim(q.header[:], "\x00"))
 	if headerString != defaultQuestsHeaderString {
-		q.header = defaultQuestsHeader
+		return nil, wrongHeader
 	}
-	if q.magic == defaultQuestsMagic {
+	if q.magic != defaultQuestsMagic {
 		q.magic = defaultQuestsMagic
 	}
 	return q, nil

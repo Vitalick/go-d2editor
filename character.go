@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"github.com/vitalick/d2s/consts"
+	"github.com/vitalick/d2s/npcdialogs"
 	"github.com/vitalick/d2s/quests"
 	"github.com/vitalick/d2s/waypoints"
 	"io"
@@ -12,31 +13,33 @@ import (
 
 //Character ...
 type Character struct {
-	Header         *Header              `json:"header"`
-	ActiveWeapon   uint32               `json:"active_weapon"`
-	Name           string               `json:"name"`
-	Status         *Status              `json:"status"`
-	Progression    byte                 `json:"-"`
-	Unk0x0026      [2]byte              `json:"-"`
-	Class          class                `json:"class"`
-	Unk0x0029      [2]byte              `json:"-"`
-	Level          byte                 `json:"level"`
-	Created        uint32               `json:"created"`
-	LastPlayed     uint32               `json:"last_played"`
-	Unk0x0034      [4]byte              `json:"-"`
-	HotkeySkills   [16]Skill            `json:"hotkey_skills"`
-	LeftSkill      Skill                `json:"left_skill"`
-	RightSkill     Skill                `json:"right_skill"`
-	LeftSwapSkill  Skill                `json:"left_swap_skill"`
-	RightSwapSkill Skill                `json:"right_swap_skill"`
-	Appearances    Appearances          `json:"appearances"`
-	Locations      *Locations           `json:"locations"`
-	MapID          uint32               `json:"map_id"`
-	Unk0x00af      [2]byte              `json:"-"`
-	Mercenary      Mercenary            `json:"mercenary"`
-	RealmData      [144]byte            `json:"-"`
-	Quests         *quests.Quests       `json:"quests"`
-	Waypoints      *waypoints.Waypoints `json:"waypoints"`
+	Header         *Header                `json:"header"`
+	ActiveWeapon   uint32                 `json:"active_weapon"`
+	Name           string                 `json:"name"`
+	Status         *Status                `json:"status"`
+	Progression    byte                   `json:"-"`
+	Unk0x0026      [2]byte                `json:"-"`
+	Class          class                  `json:"class"`
+	Unk0x0029      [2]byte                `json:"-"`
+	Level          byte                   `json:"level"`
+	Created        uint32                 `json:"created"`
+	LastPlayed     uint32                 `json:"last_played"`
+	Unk0x0034      [4]byte                `json:"-"`
+	HotkeySkills   [16]Skill              `json:"hotkey_skills"`
+	LeftSkill      Skill                  `json:"left_skill"`
+	RightSkill     Skill                  `json:"right_skill"`
+	LeftSwapSkill  Skill                  `json:"left_swap_skill"`
+	RightSwapSkill Skill                  `json:"right_swap_skill"`
+	Appearances    Appearances            `json:"appearances"`
+	Locations      *Locations             `json:"locations"`
+	MapID          uint32                 `json:"map_id"`
+	Unk0x00af      [2]byte                `json:"-"`
+	Mercenary      Mercenary              `json:"mercenary"`
+	RealmData      [144]byte              `json:"-"`
+	Quests         *quests.Quests         `json:"quests"`
+	Waypoints      *waypoints.Waypoints   `json:"waypoints"`
+	UnkUnk1        byte                   `json:"-"`
+	NPCDialogs     *npcdialogs.NPCDialogs `json:"npc_dialogs"`
 }
 
 type inputStruct struct {
@@ -78,6 +81,7 @@ func NewEmptyCharacter(version uint) (*Character, error) {
 		return nil, err
 	}
 	c.Waypoints = w
+	c.NPCDialogs = npcdialogs.NewEmptyNPCDialogs()
 
 	c.Unk0x0026 = defaultUnk0x0026
 	c.Unk0x0029 = defaultUnk0x0029
@@ -178,6 +182,19 @@ func NewCharacter(r io.Reader) (*Character, error) {
 			return nil
 		},
 	})
+	inArr = append(inArr, inputStruct{&c.UnkUnk1, nil})
+
+	inArr = append(inArr, inputStruct{
+		nil,
+		func(r io.Reader, c *Character) error {
+			d, er := npcdialogs.NewNPCDialogs(r)
+			if er != nil {
+				return er
+			}
+			c.NPCDialogs = d
+			return nil
+		},
+	})
 
 	for _, inData := range inArr {
 		if inData.f != nil {
@@ -245,16 +262,22 @@ func (c *Character) ToWriter(w io.Writer) error {
 	values = append(values, c.Unk0x00af)
 	values = append(values, c.Mercenary)
 	values = append(values, c.RealmData)
-	packedQuests, err := c.Quests.GetPacked()
+	packedData, err := c.Quests.GetPacked()
 	if err != nil {
 		return err
 	}
-	values = append(values, packedQuests)
-	packedWaypoints, err := c.Waypoints.GetPacked()
+	values = append(values, packedData)
+	packedData, err = c.Waypoints.GetPacked()
 	if err != nil {
 		return err
 	}
-	values = append(values, packedWaypoints)
+	values = append(values, packedData)
+	values = append(values, c.UnkUnk1)
+	packedData, err = c.NPCDialogs.GetPacked()
+	if err != nil {
+		return err
+	}
+	values = append(values, packedData)
 
 	for _, val := range values {
 		if err := binary.Write(w, consts.BinaryEndian, val); err != nil {

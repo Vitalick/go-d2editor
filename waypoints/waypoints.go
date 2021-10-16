@@ -3,6 +3,7 @@ package waypoints
 import (
 	"bytes"
 	"encoding/binary"
+	"errors"
 	"io"
 )
 
@@ -15,6 +16,7 @@ const (
 var (
 	defaultWaypointsHeader = [waypointsHeaderLength]byte{}
 	defaultWaypointsMagic  = [waypointsMagicLength]byte{6, 0, 0, 0, 42, 1}
+	wrongHeader            = errors.New("wrong waypoints header")
 )
 
 func init() {
@@ -76,7 +78,7 @@ func NewWaypoints(r io.Reader) (*Waypoints, error) {
 	}
 	headerString := string(bytes.Trim(q.header[:], "\x00"))
 	if headerString != defaultWaypointsHeaderString {
-		q.header = defaultWaypointsHeader
+		return nil, wrongHeader
 	}
 	if q.magic == defaultWaypointsMagic {
 		q.magic = defaultWaypointsMagic

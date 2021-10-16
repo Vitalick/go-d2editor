@@ -3,7 +3,7 @@ package quests
 import (
 	"encoding/json"
 	"errors"
-	"github.com/vitalick/d2s/bitslice"
+	"github.com/vitalick/bitslice"
 	"github.com/vitalick/d2s/consts"
 	"github.com/vitalick/d2s/utils"
 	"io"
