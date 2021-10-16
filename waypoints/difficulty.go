@@ -10,11 +10,22 @@ import (
 	"io"
 )
 
+type ActImportMap map[string]bool
+type DifficultyImportMap map[string]ActImportMap
+
 //Difficulty ...
 type Difficulty struct {
 	header        [2]byte
 	actsWaypoints []bool
 	magic         [17]byte
+}
+
+//NewEmptyDifficulty returns empty Difficulty
+func NewEmptyDifficulty() (Difficulty, error) {
+	d := Difficulty{}
+	d.header = [2]byte{2, 1}
+	d.actsWaypoints = make([]bool, actWaypointsCount)
+	return d, nil
 }
 
 //NewDifficulty returns Difficulty from packed bytes
@@ -24,11 +35,12 @@ func NewDifficulty(r io.Reader) (Difficulty, error) {
 	if err := binary.Read(r, binaryEndian, &d.header); err != nil {
 		return d, err
 	}
+	d.header = [2]byte{2, 1}
 	bs, err := bitslice.NewBitSliceFromReader(r, binaryEndian, 5)
 	if err != nil {
 		return d, err
 	}
-	d.actsWaypoints = bs.Slice
+	d.actsWaypoints = bs.Slice[:actWaypointsCount]
 	err = binary.Read(r, binaryEndian, &d.magic)
 	if err != nil {
 		return d, err
@@ -37,13 +49,25 @@ func NewDifficulty(r io.Reader) (Difficulty, error) {
 	return d, nil
 }
 
+func (d *Difficulty) updateActsWaypoints() {
+	if len(d.actsWaypoints) < actWaypointsCount {
+		oldWp := d.actsWaypoints
+		d.actsWaypoints = make([]bool, actWaypointsCount)
+		for i, wp := range oldWp {
+			d.actsWaypoints[i] = wp
+		}
+	}
+}
+
 //GetWaypointState ...
 func (d *Difficulty) GetWaypointState(w ActWaypoint) bool {
+	d.updateActsWaypoints()
 	return d.actsWaypoints[w]
 }
 
 //SetWaypointState ...
 func (d *Difficulty) SetWaypointState(w ActWaypoint, val bool) {
+	d.updateActsWaypoints()
 	d.actsWaypoints[w] = val
 }
 
@@ -54,9 +78,9 @@ func (d *Difficulty) GetActWaypoints(a consts.ActID) []ActWaypoint {
 
 // MarshalJSON ...
 func (d *Difficulty) MarshalJSON() ([]byte, error) {
-	exportMap := map[string]map[string]bool{}
+	exportMap := DifficultyImportMap{}
 	for act, waypoints := range actWaypointsMap {
-		actMap := map[string]bool{}
+		actMap := ActImportMap{}
 		for _, wp := range waypoints {
 			actMap[utils.TitleToJSONTitle(wp.String())] = d.actsWaypoints[wp]
 		}
@@ -65,9 +89,34 @@ func (d *Difficulty) MarshalJSON() ([]byte, error) {
 	return json.Marshal(&exportMap)
 }
 
+// UnmarshalJSON ...
+func (d *Difficulty) UnmarshalJSON(data []byte) error {
+	importMap := DifficultyImportMap{}
+	if err := json.Unmarshal(data, &importMap); err != nil {
+		return err
+	}
+	for act, waypoints := range actWaypointsMap {
+		actTitle := utils.TitleToJSONTitle(act.String())
+		actMap, ok := importMap[actTitle]
+		if !ok {
+			continue
+		}
+		for _, wp := range waypoints {
+			wpTitle := utils.TitleToJSONTitle(wp.String())
+			waypointState, ok := actMap[wpTitle]
+			if !ok {
+				continue
+			}
+			d.SetWaypointState(wp, waypointState)
+		}
+	}
+	return nil
+}
+
 //GetPacked returns packed Difficulty into []byte
 func (d *Difficulty) GetPacked() ([]byte, error) {
 	var buf bytes.Buffer
+	d.header = [2]byte{2, 1}
 	if err := binary.Write(&buf, binaryEndian, d.header); err != nil {
 		return nil, err
 	}

@@ -9,20 +9,35 @@ import (
 	"io"
 )
 
+type DifficultyImportMap map[string]ActImportMap
+
 //Difficulty ...
 type Difficulty []Act
 
+//NewEmptyDifficulty returns empty Difficulty
+func NewEmptyDifficulty() (*Difficulty, error) {
+	d := make(Difficulty, consts.ActsCount)
+	for i := range d {
+		act, err := NewEmptyAct(consts.ActID(i))
+		if err != nil {
+			return nil, err
+		}
+		d[i] = *act
+	}
+	return &d, nil
+}
+
 //NewDifficulty returns Difficulty from packed bytes
-func NewDifficulty(r io.Reader) (Difficulty, error) {
-	d := Difficulty{}
-	for i := range make([]bool, consts.ActsCount) {
+func NewDifficulty(r io.Reader) (*Difficulty, error) {
+	d := make(Difficulty, consts.ActsCount)
+	for i := range d {
 		act, err := NewAct(r, consts.ActID(i))
 		if err != nil {
-			return d, err
+			return nil, err
 		}
-		d = append(d, act)
+		d[i] = *act
 	}
-	return d, nil
+	return &d, nil
 }
 
 //GetAct returns Act in current Difficulty
@@ -36,10 +51,10 @@ func (d *Difficulty) GetQuest(a consts.ActID, q ActQuest) *Quest {
 }
 
 // ExportMap ...
-func (d Difficulty) ExportMap() *map[string]interface{} {
-	exportMap := map[string]interface{}{}
+func (d Difficulty) ExportMap() *DifficultyImportMap {
+	exportMap := DifficultyImportMap{}
 	for _, a := range d {
-		exportMap[utils.TitleToJSONTitle(a.String())] = a.ExportMap()
+		exportMap[utils.TitleToJSONTitle(a.String())] = *a.ExportMap()
 	}
 	return &exportMap
 }
@@ -47,6 +62,31 @@ func (d Difficulty) ExportMap() *map[string]interface{} {
 // MarshalJSON ...
 func (d Difficulty) MarshalJSON() ([]byte, error) {
 	return json.Marshal(d.ExportMap())
+}
+
+// ImportMap ...
+func (d *Difficulty) ImportMap(importMap DifficultyImportMap) error {
+	for i, a := range *d {
+		actTitle := utils.TitleToJSONTitle(a.String())
+		actMap, ok := importMap[actTitle]
+		if !ok {
+			return actNotExists
+		}
+		err := (*d)[i].ImportMap(actMap)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// UnmarshalJSON ...
+func (d *Difficulty) UnmarshalJSON(data []byte) error {
+	importMap := DifficultyImportMap{}
+	if err := json.Unmarshal(data, &importMap); err != nil {
+		return err
+	}
+	return d.ImportMap(importMap)
 }
 
 //GetPacked returns packed Difficulty into []byte

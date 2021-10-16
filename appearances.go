@@ -19,3 +19,25 @@ type Appearances struct {
 	Special7  Appearance `json:"special_7,omitempty"`
 	Special8  Appearance `json:"special_8,omitempty"`
 }
+
+func NewEmptyAppearances() *Appearances {
+	emptyAppearance := NewEmptyAppearance()
+	return &Appearances{
+		Head:      *emptyAppearance,
+		Torso:     *emptyAppearance,
+		Legs:      *emptyAppearance,
+		RightArm:  *emptyAppearance,
+		LeftArm:   *emptyAppearance,
+		RightHand: *emptyAppearance,
+		LeftHand:  *emptyAppearance,
+		Shield:    *emptyAppearance,
+		Special1:  *emptyAppearance,
+		Special2:  *emptyAppearance,
+		Special3:  *emptyAppearance,
+		Special4:  *emptyAppearance,
+		Special5:  *emptyAppearance,
+		Special6:  *emptyAppearance,
+		Special7:  *emptyAppearance,
+		Special8:  *emptyAppearance,
+	}
+}

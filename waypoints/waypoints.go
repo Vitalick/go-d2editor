@@ -7,10 +7,19 @@ import (
 )
 
 const (
-	defaultWaypointsHeader = "WS"
-	waypointsHeaderLength  = 2
-	waypointsMagicLength   = 6
+	defaultWaypointsHeaderString = "WS"
+	waypointsHeaderLength        = 2
+	waypointsMagicLength         = 6
 )
+
+var (
+	defaultWaypointsHeader = [waypointsHeaderLength]byte{}
+	defaultWaypointsMagic  = [waypointsMagicLength]byte{6, 0, 0, 0, 42, 1}
+)
+
+func init() {
+	copy(defaultWaypointsHeader[:], defaultWaypointsHeaderString[:])
+}
 
 //Waypoints ...
 type Waypoints struct {
@@ -19,6 +28,27 @@ type Waypoints struct {
 	Normal    Difficulty `json:"normal"`
 	Nightmare Difficulty `json:"nightmare"`
 	Hell      Difficulty `json:"hell"`
+}
+
+//NewEmptyWaypoints returns empty Quests
+func NewEmptyWaypoints() (*Waypoints, error) {
+	q := &Waypoints{}
+	q.header = defaultWaypointsHeader
+	q.magic = defaultWaypointsMagic
+	var err error
+	q.Normal, err = NewEmptyDifficulty()
+	if err != nil {
+		return nil, err
+	}
+	q.Nightmare, err = NewEmptyDifficulty()
+	if err != nil {
+		return nil, err
+	}
+	q.Hell, err = NewEmptyDifficulty()
+	if err != nil {
+		return nil, err
+	}
+	return q, nil
 }
 
 //NewWaypoints returns Waypoints from packed bytes
@@ -45,13 +75,11 @@ func NewWaypoints(r io.Reader) (*Waypoints, error) {
 		return nil, err
 	}
 	headerString := string(bytes.Trim(q.header[:], "\x00"))
-	if headerString != defaultWaypointsHeader {
-		var charName [waypointsHeaderLength]byte
-		copy(charName[:], defaultWaypointsHeader[:])
-		q.header = charName
+	if headerString != defaultWaypointsHeaderString {
+		q.header = defaultWaypointsHeader
 	}
-	if q.magic == [waypointsMagicLength]byte{} {
-		q.magic = [waypointsMagicLength]byte{6, 0, 0, 0, 42, 1}
+	if q.magic == defaultWaypointsMagic {
+		q.magic = defaultWaypointsMagic
 	}
 	return q, nil
 }

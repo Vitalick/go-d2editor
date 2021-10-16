@@ -16,6 +16,11 @@ type Header struct {
 	Checksum uint32 `json:"checksum"`
 }
 
+//NewEmptyHeader returns empty Header
+func NewEmptyHeader(version uint) *Header {
+	return &Header{defaultMagic, uint32(version), 0, 0}
+}
+
 //NewHeader returns Header from packed bytes
 func NewHeader(r io.Reader) (*Header, error) {
 	h := &Header{}
@@ -30,31 +35,31 @@ func NewHeader(r io.Reader) (*Header, error) {
 
 //Fix changes filesize and checksum on struct
 func (h *Header) Fix(c *Character) error {
+	err := h.fixBytes(c)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (h *Header) fixBytes(c *Character) error {
+	if err := h.fixSize(c); err != nil {
+		return err
+	}
+	if err := h.fixChecksum(c); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (h *Header) fixChecksum(c *Character) error {
 	h.Checksum = 0
 	b, err := c.GetBytes()
 	if err != nil {
 		return err
 	}
-	err = h.fixBytes(b)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (h *Header) fixBytes(b []byte) error {
-	if err := h.fixChecksum(b); err != nil {
-		return err
-	}
-	if err := h.fixSize(b); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (h *Header) fixChecksum(bs []byte) error {
 	checksum := 0
-	for _, b := range bs {
+	for _, b := range b {
 		secondVal := 0
 		if checksum < 0 {
 			secondVal = 1
@@ -65,7 +70,11 @@ func (h *Header) fixChecksum(bs []byte) error {
 	return nil
 }
 
-func (h *Header) fixSize(b []byte) error {
+func (h *Header) fixSize(c *Character) error {
+	b, err := c.GetBytes()
+	if err != nil {
+		return err
+	}
 	h.Filesize = uint32(len(b))
 	return nil
 }

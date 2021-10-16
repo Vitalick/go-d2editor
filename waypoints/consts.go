@@ -106,6 +106,8 @@ var waypointsMap = map[ActWaypoint]struct {
 	Act5WorldstoneKeepLvl2:     {"Worldstone Keep Lvl 2", consts.Act5},
 }
 
+var actWaypointsCount = len(waypointsMap)
+
 var actWaypointsMap = map[consts.ActID][]ActWaypoint{
 	consts.Act1: {
 		Act1RogueEncampement,
