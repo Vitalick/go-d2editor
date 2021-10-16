@@ -46,7 +46,7 @@ Simple Go package for reading and writing Diablo 2 saves. Supports version 1.10 
 - Test created savedata in Diablo 2 Resurrected
 - Test created savedata in Diablo 2 LoD
 
-##### Links
+## Links
 
 - https://github.com/dschu012/D2SLib (credits to dschu012 for example lib on c#)
 - https://github.com/d07RiV/d07riv.github.io/blob/master/d2r.html (credits to d07riv for reversing the item code on D2R)
