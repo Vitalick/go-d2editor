@@ -10,7 +10,7 @@ const defaultMagic = 0xAA55AA55
 
 //Header ...
 type Header struct {
-	Magic    uint32 `json:"magic"`
+	Magic    uint32 `json:"-"`
 	Version  uint32 `json:"version"`
 	Filesize uint32 `json:"filesize"`
 	Checksum uint32 `json:"checksum"`
