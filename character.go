@@ -1,12 +1,12 @@
-package d2s
+package d2editor
 
 import (
 	"bytes"
 	"encoding/binary"
-	"github.com/vitalick/d2s/consts"
-	"github.com/vitalick/d2s/npcdialogs"
-	"github.com/vitalick/d2s/quests"
-	"github.com/vitalick/d2s/waypoints"
+	"github.com/vitalick/go-d2editor/consts"
+	"github.com/vitalick/go-d2editor/npcdialogs"
+	"github.com/vitalick/go-d2editor/quests"
+	"github.com/vitalick/go-d2editor/waypoints"
 	"io"
 	"time"
 )

@@ -1,8 +1,8 @@
-package d2s
+package d2editor
 
 import (
 	"encoding/binary"
-	"github.com/vitalick/d2s/consts"
+	"github.com/vitalick/go-d2editor/consts"
 	"io"
 )
 

@@ -1,7 +1,7 @@
 package waypoints
 
 import (
-	"github.com/vitalick/d2s/consts"
+	"github.com/vitalick/go-d2editor/consts"
 )
 
 var (

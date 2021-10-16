@@ -5,8 +5,8 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"github.com/vitalick/bitslice"
-	"github.com/vitalick/d2s/consts"
-	"github.com/vitalick/d2s/utils"
+	"github.com/vitalick/go-d2editor/consts"
+	"github.com/vitalick/go-d2editor/utils"
 	"io"
 )
 

@@ -1,4 +1,4 @@
-package d2s
+package d2editor
 
 //Location is information about difficult and opened acts on it
 type Location struct {

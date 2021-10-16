@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/vitalick/bitslice"
-	"github.com/vitalick/d2s/utils"
+	"github.com/vitalick/go-d2editor/utils"
 )
 
 type DifficultyImportMap map[string]NPCDialogData

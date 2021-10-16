@@ -1,4 +1,4 @@
-module github.com/vitalick/d2s
+module github.com/vitalick/go-d2editor
 
 go 1.13
 

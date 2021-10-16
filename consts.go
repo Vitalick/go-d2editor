@@ -1,4 +1,4 @@
-package d2s
+package d2editor
 
 const (
 	nameSize = 16
