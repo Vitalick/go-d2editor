@@ -1,7 +1,7 @@
 # Diablo 2 Save editor
 
-[![Go Report Card](https://goreportcard.com/badge/github.com/vitalick/go-d2editor)](https://goreportcard.com/report/github.com/vitalick/d2s)
-[![GoDoc](https://godoc.org/github.com/vitalick/go-d2editor?status.svg)](https://godoc.org/github.com/vitalick/d2s)
+[![Go Report Card](https://goreportcard.com/badge/github.com/vitalick/go-d2editor)](https://goreportcard.com/report/github.com/vitalick/go-d2editor)
+[![GoDoc](https://godoc.org/github.com/vitalick/go-d2editor?status.svg)](https://godoc.org/github.com/vitalick/go-d2editor)
 
 Go package for reading and writing Diablo 2 saves. Supports version 1.10 through Diablo II: Resurrected (1.15).
 Supports reading both d2s (player saves) ~~and d2i (shared stash)~~ files.
