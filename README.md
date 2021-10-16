@@ -1,11 +1,15 @@
 # Diablo 2 Save editor
+
 [![Go Report Card](https://goreportcard.com/badge/github.com/vitalick/d2s)](https://goreportcard.com/report/github.com/vitalick/d2s)
 [![GoDoc](https://godoc.org/github.com/vitalick/d2s?status.svg)](https://godoc.org/github.com/vitalick/d2s)
 
-
-Simple Go package for reading and writing Diablo 2 saves. Supports version 1.10 through Diablo II: Resurrected (1.15). Supports reading both d2s (player saves) ~~and d2i (shared stash)~~ files.
+Simple Go package for reading and writing Diablo 2 saves. Supports version 1.10 through Diablo II: Resurrected (1.15).
+Supports reading both d2s (player saves) ~~and d2i (shared stash)~~ files.
 
 ## Roadmap
+
+<details>
+<summary>Completed steps</summary>
 
 - ~~Add Character struct~~
 - ~~Add Header to Character~~
@@ -35,6 +39,9 @@ Simple Go package for reading and writing Diablo 2 saves. Supports version 1.10 
 - ~~Add Waypoints to Character~~
 - ~~Add UnkUnk1 to Character~~
 - ~~Add NPCDialogs to Character~~
+
+</details>
+
 - Add Attributes to Character
 - Add ClassSkills to Character
 - Add ItemList to Character
