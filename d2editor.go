@@ -42,7 +42,7 @@ func Save(c *Character, folder string) error {
 		fmt.Fprintln(os.Stderr, errorBlankName)
 		return err
 	}
-	file, err := os.Create(fmt.Sprintf("%s%s.d2s", folder, c.Name))
+	file, err := os.Create(fmt.Sprintf("%s%s.d2s", folder, c.GetName()))
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Error while creating .d2s file")
 		return err
@@ -92,7 +92,8 @@ func SaveJSON(c *Character, folder string) error {
 		fmt.Fprintln(os.Stderr, errorBlankName)
 		return err
 	}
-	file, err := os.Create(fmt.Sprintf("%s%s.json", folder, c.Name))
+	c.Name = c.GetName()
+	file, err := os.Create(fmt.Sprintf("%s%s.json", folder, c.GetName()))
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Error while creating json file")
 		return err
