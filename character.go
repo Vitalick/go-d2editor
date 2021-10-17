@@ -223,17 +223,23 @@ func NewCharacter(r io.Reader) (*Character, error) {
 	return c, nil
 }
 
+func (c *Character) GetName() string {
+	if len(c.Name) > nameSize {
+		return c.Name[:nameSize]
+	}
+	return c.Name
+}
+
+func (c *Character) getNameBytes() [nameSize]byte {
+	var charName [nameSize]byte
+	copy(charName[:], c.GetName()[:])
+	return charName
+}
+
 //ToWriter write not prepared for export byte struct to io.Writer
 func (c *Character) ToWriter(w io.Writer) error {
 	ww := &writerWrapper{w: w}
-	var values []interface{}
-	values = append(values, *c.Header)
-	values = append(values, c.ActiveWeapon)
-	var charName [nameSize]byte
-	if len(c.Name) > nameSize {
-		c.Name = c.Name[:nameSize]
-	}
-	copy(charName[:], c.Name[:])
+	var values [27]interface{}
 
 	type packedChan struct {
 		result []byte
@@ -258,51 +264,51 @@ func (c *Character) ToWriter(w io.Writer) error {
 	go getPackedChan(c.Waypoints.GetPacked, waypointsCh)
 	go getPackedChan(c.NPCDialogs.GetPacked, dialogsCh)
 
-	values = append(values, charName)
-	values = append(values, c.Status.GetFlags())
-	values = append(values, c.Progression)
-	values = append(values, c.Unk0x0026)
-	values = append(values, c.Class)
-	values = append(values, c.Unk0x0029)
-	values = append(values, c.Level)
-	values = append(values, c.Created)
-	values = append(values, c.LastPlayed)
-	values = append(values, c.Unk0x0034)
-	values = append(values, c.HotkeySkills)
-	values = append(values, c.LeftSkill)
-	values = append(values, c.RightSkill)
-	values = append(values, c.LeftSwapSkill)
-	values = append(values, c.RightSwapSkill)
-	values = append(values, c.Appearances)
+	values[0] = *c.Header
+	values[1] = c.ActiveWeapon
+	values[2] = c.getNameBytes()
+	values[3] = c.Status.GetFlags()
+	values[4] = c.Progression
+	values[5] = c.Unk0x0026
+	values[6] = c.Class
+	values[7] = c.Unk0x0029
+	values[8] = c.Level
+	values[9] = c.Created
+	values[10] = c.LastPlayed
+	values[11] = c.Unk0x0034
+	values[12] = c.HotkeySkills
+	values[13] = c.LeftSkill
+	values[14] = c.RightSkill
+	values[15] = c.LeftSwapSkill
+	values[16] = c.RightSwapSkill
+	values[17] = c.Appearances
+	values[19] = c.MapID
+	values[20] = c.Unk0x00af
+	values[21] = c.Mercenary
+	values[22] = c.RealmData
+	values[25] = c.UnkUnk1
 
-	values = append(values, (<-locationsCh).result)
-
-	values = append(values, c.MapID)
-	values = append(values, c.Unk0x00af)
-	values = append(values, c.Mercenary)
-	values = append(values, c.RealmData)
-
-	questsB := <-questsCh
-	if questsB.err != nil {
-		return questsB.err
+	for range make([]bool, 4) {
+		select {
+		case locationsB := <-locationsCh:
+			values[18] = locationsB.result
+		case questsB := <-questsCh:
+			if questsB.err != nil {
+				return questsB.err
+			}
+			values[23] = questsB.result
+		case waypointsB := <-waypointsCh:
+			if waypointsB.err != nil {
+				return waypointsB.err
+			}
+			values[24] = waypointsB.result
+		case dialogsB := <-dialogsCh:
+			if dialogsB.err != nil {
+				return dialogsB.err
+			}
+			values[26] = dialogsB.result
+		}
 	}
-
-	values = append(values, questsB.result)
-
-	waypointsB := <-waypointsCh
-	if waypointsB.err != nil {
-		return waypointsB.err
-	}
-
-	values = append(values, waypointsB.result)
-	values = append(values, c.UnkUnk1)
-
-	dialogsB := <-dialogsCh
-	if dialogsB.err != nil {
-		return dialogsB.err
-	}
-
-	values = append(values, dialogsB.result)
 
 	for _, val := range values {
 		if err := binary.Write(ww, consts.BinaryEndian, val); err != nil {
