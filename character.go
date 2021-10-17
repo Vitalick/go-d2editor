@@ -223,16 +223,9 @@ func NewCharacter(r io.Reader) (*Character, error) {
 	return c, nil
 }
 
-//Fix changes struct for export
-func (c *Character) Fix() error {
-	if err := c.Header.Fix(c); err != nil {
-		return err
-	}
-	return nil
-}
-
 //ToWriter write not prepared for export byte struct to io.Writer
 func (c *Character) ToWriter(w io.Writer) error {
+	ww := &writerWrapper{w: w}
 	var values []interface{}
 	values = append(values, *c.Header)
 	values = append(values, c.ActiveWeapon)
@@ -241,6 +234,30 @@ func (c *Character) ToWriter(w io.Writer) error {
 		c.Name = c.Name[:nameSize]
 	}
 	copy(charName[:], c.Name[:])
+
+	type packedChan struct {
+		result []byte
+		err    error
+	}
+
+	locationsCh := make(chan packedChan)
+	questsCh := make(chan packedChan)
+	waypointsCh := make(chan packedChan)
+	dialogsCh := make(chan packedChan)
+
+	getPackedChan := func(f func() ([]byte, error), ch chan packedChan) {
+		b, err := f()
+		if err != nil {
+			ch <- packedChan{nil, err}
+			return
+		}
+		ch <- packedChan{b, nil}
+	}
+	go getPackedChan(func() ([]byte, error) { return c.Locations.GetPacked(), nil }, locationsCh)
+	go getPackedChan(c.Quests.GetPacked, questsCh)
+	go getPackedChan(c.Waypoints.GetPacked, waypointsCh)
+	go getPackedChan(c.NPCDialogs.GetPacked, dialogsCh)
+
 	values = append(values, charName)
 	values = append(values, c.Status.GetFlags())
 	values = append(values, c.Progression)
@@ -257,42 +274,42 @@ func (c *Character) ToWriter(w io.Writer) error {
 	values = append(values, c.LeftSwapSkill)
 	values = append(values, c.RightSwapSkill)
 	values = append(values, c.Appearances)
-	values = append(values, c.Locations.GetPacked())
+
+	values = append(values, (<-locationsCh).result)
+
 	values = append(values, c.MapID)
 	values = append(values, c.Unk0x00af)
 	values = append(values, c.Mercenary)
 	values = append(values, c.RealmData)
-	packedData, err := c.Quests.GetPacked()
-	if err != nil {
-		return err
+
+	questsB := <-questsCh
+	if questsB.err != nil {
+		return questsB.err
 	}
-	values = append(values, packedData)
-	packedData, err = c.Waypoints.GetPacked()
-	if err != nil {
-		return err
+
+	values = append(values, questsB.result)
+
+	waypointsB := <-waypointsCh
+	if waypointsB.err != nil {
+		return waypointsB.err
 	}
-	values = append(values, packedData)
+
+	values = append(values, waypointsB.result)
 	values = append(values, c.UnkUnk1)
-	packedData, err = c.NPCDialogs.GetPacked()
-	if err != nil {
-		return err
+
+	dialogsB := <-dialogsCh
+	if dialogsB.err != nil {
+		return dialogsB.err
 	}
-	values = append(values, packedData)
+
+	values = append(values, dialogsB.result)
 
 	for _, val := range values {
-		if err := binary.Write(w, consts.BinaryEndian, val); err != nil {
+		if err := binary.Write(ww, consts.BinaryEndian, val); err != nil {
 			return err
 		}
 	}
-	return nil
-}
-
-//ToWriterCorrect write prepared for export byte struct to io.Writer
-func (c *Character) ToWriterCorrect(w io.Writer) error {
-	if err := c.Fix(); err != nil {
-		return err
-	}
-	if err := c.ToWriter(w); err != nil {
+	if _, err := ww.EndWrite(); err != nil {
 		return err
 	}
 	return nil
@@ -302,16 +319,6 @@ func (c *Character) ToWriterCorrect(w io.Writer) error {
 func (c *Character) GetBytes() ([]byte, error) {
 	var buf bytes.Buffer
 	if err := c.ToWriter(&buf); err != nil {
-		return nil, err
-	}
-	return buf.Bytes(), nil
-}
-
-//GetCorrectBytes return prepared for export []byte
-func (c *Character) GetCorrectBytes() ([]byte, error) {
-	var buf bytes.Buffer
-	//bw := bufio.NewWriter(&buf)
-	if err := c.ToWriterCorrect(&buf); err != nil {
 		return nil, err
 	}
 	return buf.Bytes(), nil

@@ -21,10 +21,10 @@ type Act struct {
 //NewEmptyAct returns empty Act
 func NewEmptyAct(a consts.ActID) (*Act, error) {
 	act := &Act{id: a}
-	actLength, ok := actLengths[a]
-	if !ok {
+	if int(a) >= len(actLengths) {
 		return nil, actNotExists
 	}
+	actLength := actLengths[a]
 	act.quests = make([]Quest, actLength)
 	for q := range act.quests {
 		quest, err := NewEmptyQuest(a, ActQuest(q))
@@ -83,16 +83,16 @@ func (a *Act) MarshalJSON() ([]byte, error) {
 
 // ImportMap ...
 func (a *Act) ImportMap(importMap ActImportMap) error {
-	actMap, ok := actQuestsMap[a.id]
-	if !ok {
+	if int(a.id) >= consts.ActsCount {
 		return actNotExists
 	}
+	actMap := actQuestsMap[a.id]
 	for quest := range make([]bool, actLengths[a.id]) {
-		actQuest := ActQuest(quest)
-		questMapTitle, ok := actMap[actQuest]
-		if !ok {
+		if quest >= actLengths[a.id] {
 			continue
 		}
+		actQuest := ActQuest(quest)
+		questMapTitle := actMap[actQuest]
 		questMapTitle = utils.TitleToJSONTitle(questMapTitle)
 		questImportMap, ok := importMap[questMapTitle]
 		if !ok {

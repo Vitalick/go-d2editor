@@ -50,7 +50,7 @@ func Save(c *Character, folder string) error {
 
 	defer file.Close()
 
-	err = c.ToWriterCorrect(file)
+	err = c.ToWriter(file)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Error while writing buffer file")
 		return err

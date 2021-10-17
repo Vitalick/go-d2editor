@@ -22,12 +22,10 @@ type Quest struct {
 
 //NewEmptyQuest returns empty Quest
 func NewEmptyQuest(a consts.ActID, qID ActQuest) (*Quest, error) {
-	actMap, ok := actQuestsMap[a]
-	if !ok {
+	if int(a) >= consts.ActsCount {
 		return nil, actNotExists
 	}
-	_, ok = actMap[qID]
-	if !ok {
+	if int(qID) >= actLengths[a] {
 		return nil, questNotExists
 	}
 	return &Quest{actID: a, questID: qID, flags: make([]bool, questFlagCount)}, nil

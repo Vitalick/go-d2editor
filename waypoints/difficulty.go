@@ -79,7 +79,8 @@ func (d *Difficulty) GetActWaypoints(a consts.ActID) []ActWaypoint {
 // MarshalJSON ...
 func (d *Difficulty) MarshalJSON() ([]byte, error) {
 	exportMap := DifficultyImportMap{}
-	for act, waypoints := range actWaypointsMap {
+	for i, waypoints := range actWaypointsMap {
+		act := consts.ActID(i)
 		actMap := ActImportMap{}
 		for _, wp := range waypoints {
 			actMap[utils.TitleToJSONTitle(wp.String())] = d.actsWaypoints[wp]
@@ -95,7 +96,8 @@ func (d *Difficulty) UnmarshalJSON(data []byte) error {
 	if err := json.Unmarshal(data, &importMap); err != nil {
 		return err
 	}
-	for act, waypoints := range actWaypointsMap {
+	for i, waypoints := range actWaypointsMap {
+		act := consts.ActID(i)
 		actTitle := utils.TitleToJSONTitle(act.String())
 		actMap, ok := importMap[actTitle]
 		if !ok {

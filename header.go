@@ -33,48 +33,11 @@ func NewHeader(r io.Reader) (*Header, error) {
 	return h, nil
 }
 
-//Fix changes filesize and checksum on struct
-func (h *Header) Fix(c *Character) error {
-	err := h.fixBytes(c)
-	if err != nil {
-		return err
+func ChecksumAppend(b byte, c int) int {
+	secondVal := 0
+	if c < 0 {
+		secondVal = 1
 	}
-	return nil
-}
-
-func (h *Header) fixBytes(c *Character) error {
-	if err := h.fixSize(c); err != nil {
-		return err
-	}
-	if err := h.fixChecksum(c); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (h *Header) fixChecksum(c *Character) error {
-	h.Checksum = 0
-	b, err := c.GetBytes()
-	if err != nil {
-		return err
-	}
-	checksum := 0
-	for _, b := range b {
-		secondVal := 0
-		if checksum < 0 {
-			secondVal = 1
-		}
-		checksum = int(b) + checksum*2 + secondVal
-	}
-	h.Checksum = uint32(checksum)
-	return nil
-}
-
-func (h *Header) fixSize(c *Character) error {
-	b, err := c.GetBytes()
-	if err != nil {
-		return err
-	}
-	h.Filesize = uint32(len(b))
-	return nil
+	c = int(b) + c*2 + secondVal
+	return c
 }

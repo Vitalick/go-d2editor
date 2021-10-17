@@ -28,7 +28,7 @@ func NewLocations(r io.Reader) (*Locations, error) {
 	}, nil
 }
 
-//GetPacked returns packed locations to 3 bytes
-func (l *Locations) GetPacked() [locationsCount]byte {
-	return [3]byte{l.Normal.GetPacked(), l.Nightmare.GetPacked(), l.Hell.GetPacked()}
+//GetPacked returns packed locations to bytes
+func (l *Locations) GetPacked() []byte {
+	return []byte{l.Normal.GetPacked(), l.Nightmare.GetPacked(), l.Hell.GetPacked()}
 }
