@@ -1,6 +1,8 @@
 package utils
 
-import "strings"
+import (
+	"strings"
+)
 
 //TitleToJSONTitle transform titles to json title format
 func TitleToJSONTitle(s string) string {
