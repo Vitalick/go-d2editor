@@ -3,6 +3,7 @@ package d2editor
 import (
 	"bytes"
 	"encoding/binary"
+	"github.com/vitalick/go-d2editor/attributes"
 	"github.com/vitalick/go-d2editor/consts"
 	"github.com/vitalick/go-d2editor/npcdialogs"
 	"github.com/vitalick/go-d2editor/quests"
@@ -40,6 +41,7 @@ type Character struct {
 	Waypoints      *waypoints.Waypoints   `json:"waypoints"`
 	UnkUnk1        byte                   `json:"-"`
 	NPCDialogs     *npcdialogs.NPCDialogs `json:"npc_dialogs"`
+	Attributes     *attributes.Attributes `json:"attributes"`
 }
 
 type inputStruct struct {
@@ -82,6 +84,7 @@ func NewEmptyCharacter(version uint) (*Character, error) {
 	}
 	c.Waypoints = w
 	c.NPCDialogs = npcdialogs.NewEmptyNPCDialogs()
+	c.Attributes = attributes.NewEmptyAttributes()
 
 	c.Unk0x0026 = defaultUnk0x0026
 	c.Unk0x0029 = defaultUnk0x0029
@@ -196,6 +199,18 @@ func NewCharacter(r io.Reader) (*Character, error) {
 		},
 	})
 
+	inArr = append(inArr, inputStruct{
+		nil,
+		func(r io.Reader, c *Character) error {
+			a, er := attributes.NewAttributes(r)
+			if er != nil {
+				return er
+			}
+			c.Attributes = a
+			return nil
+		},
+	})
+
 	for _, inData := range inArr {
 		if inData.f != nil {
 			err = inData.f(r, c)
@@ -238,8 +253,12 @@ func (c *Character) getNameBytes() [nameSize]byte {
 
 //ToWriter write not prepared for export byte struct to io.Writer
 func (c *Character) ToWriter(w io.Writer) error {
+	c.Attributes.Level = int32(c.Level)
+	if err := c.Attributes.CheckMaxGold(); err != nil {
+		return err
+	}
 	ww := &writerWrapper{w: w}
-	var values [27]interface{}
+	var values [28]interface{}
 
 	type packedChan struct {
 		result []byte
@@ -250,6 +269,7 @@ func (c *Character) ToWriter(w io.Writer) error {
 	questsCh := make(chan packedChan)
 	waypointsCh := make(chan packedChan)
 	dialogsCh := make(chan packedChan)
+	attributesCh := make(chan packedChan)
 
 	getPackedChan := func(f func() ([]byte, error), ch chan packedChan) {
 		b, err := f()
@@ -263,6 +283,7 @@ func (c *Character) ToWriter(w io.Writer) error {
 	go getPackedChan(c.Quests.GetPacked, questsCh)
 	go getPackedChan(c.Waypoints.GetPacked, waypointsCh)
 	go getPackedChan(c.NPCDialogs.GetPacked, dialogsCh)
+	go getPackedChan(c.Attributes.GetPacked, attributesCh)
 
 	values[0] = *c.Header
 	values[1] = c.ActiveWeapon
@@ -288,7 +309,7 @@ func (c *Character) ToWriter(w io.Writer) error {
 	values[22] = c.RealmData
 	values[25] = c.UnkUnk1
 
-	for range make([]bool, 4) {
+	for range make([]struct{}, 5) {
 		select {
 		case locationsB := <-locationsCh:
 			values[18] = locationsB.result
@@ -307,6 +328,11 @@ func (c *Character) ToWriter(w io.Writer) error {
 				return dialogsB.err
 			}
 			values[26] = dialogsB.result
+		case attributesB := <-attributesCh:
+			if attributesB.err != nil {
+				return attributesB.err
+			}
+			values[27] = attributesB.result
 		}
 	}
 

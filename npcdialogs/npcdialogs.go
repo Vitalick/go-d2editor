@@ -9,34 +9,34 @@ import (
 )
 
 const (
-	defaultNPCDialogsHeaderString = "w4"
-	npcDialogsHeaderLength        = 2
-	defaultNPCDialogsLength       = 0x24
+	defaultHeaderString = "w4"
+	headerLength        = 2
+	defaultLength       = 0x24
 )
 
 var (
-	defaultNPCDialogsHeader = [npcDialogsHeaderLength]byte{}
-	wrongHeader             = errors.New("wrong npc dialogs Header")
+	defaultHeader = [headerLength]byte{}
+	wrongHeader   = errors.New("wrong npc dialogs Header")
 )
 
 func init() {
-	copy(defaultNPCDialogsHeader[:], defaultNPCDialogsHeaderString[:])
+	copy(defaultHeader[:], defaultHeaderString[:])
 }
 
 //NPCDialogs ...
 type NPCDialogs struct {
-	Header    [npcDialogsHeaderLength]byte
+	Header    [headerLength]byte
 	Length    byte
 	Normal    Difficulty `json:"normal"`
 	Nightmare Difficulty `json:"nightmare"`
 	Hell      Difficulty `json:"hell"`
 }
 
-//NewEmptyNPCDialogs returns empty Quests
+//NewEmptyNPCDialogs returns empty NPCDialogs
 func NewEmptyNPCDialogs() *NPCDialogs {
 	return &NPCDialogs{
-		defaultNPCDialogsHeader,
-		defaultNPCDialogsLength,
+		defaultHeader,
+		defaultLength,
 		NewEmptyDifficulty(),
 		NewEmptyDifficulty(),
 		NewEmptyDifficulty(),
@@ -61,6 +61,13 @@ func NewNPCDialogs(r io.Reader) (*NPCDialogs, error) {
 	//fmt.Printf("%0.8b\n", b)
 	//return nil, errors.New("test error")
 	bitSlice, err := bitslice.NewBitSliceFromReader(r, binaryEndian, bitSliceSizeBytes)
+	headerString := string(bytes.Trim(q.Header[:], "\x00"))
+	if headerString != defaultHeaderString {
+		return nil, wrongHeader
+	}
+	if q.Length != defaultLength {
+		q.Length = defaultLength
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -76,13 +83,6 @@ func NewNPCDialogs(r io.Reader) (*NPCDialogs, error) {
 	q.Hell, err = NewDifficulty(*bitSlice, 2)
 	if err != nil {
 		return nil, err
-	}
-	headerString := string(bytes.Trim(q.Header[:], "\x00"))
-	if headerString != defaultNPCDialogsHeaderString {
-		return nil, wrongHeader
-	}
-	if q.Length != defaultNPCDialogsLength {
-		q.Length = defaultNPCDialogsLength
 	}
 	return q, nil
 }

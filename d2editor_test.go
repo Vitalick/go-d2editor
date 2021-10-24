@@ -69,7 +69,7 @@ func openSaveJSON(b *testing.B, wg *sync.WaitGroup) {
 func BenchmarkCreateEmpty(b *testing.B) {
 	wg := &sync.WaitGroup{}
 	b.ResetTimer()
-	for range make([]bool, b.N) {
+	for range make([]struct{}, b.N) {
 		wg.Add(1)
 		go createEmpty(b, wg)
 	}
@@ -80,7 +80,7 @@ func BenchmarkSaveEmpty(b *testing.B) {
 	wg := &sync.WaitGroup{}
 	c := createEmpty(b, nil)
 	b.ResetTimer()
-	for range make([]bool, b.N) {
+	for range make([]struct{}, b.N) {
 		wg.Add(1)
 		go saveOne(b, c, wg)
 	}
@@ -90,7 +90,7 @@ func BenchmarkSaveEmpty(b *testing.B) {
 func BenchmarkCreateSaveEmpty(b *testing.B) {
 	wg := &sync.WaitGroup{}
 	b.ResetTimer()
-	for range make([]bool, b.N) {
+	for range make([]struct{}, b.N) {
 		wg.Add(1)
 		go createSaveEmpty(b, wg)
 	}
@@ -100,7 +100,7 @@ func BenchmarkCreateSaveEmpty(b *testing.B) {
 func BenchmarkOpen(b *testing.B) {
 	wg := &sync.WaitGroup{}
 	b.ResetTimer()
-	for range make([]bool, b.N) {
+	for range make([]struct{}, b.N) {
 		wg.Add(1)
 		go openOne(b, wg)
 	}
@@ -111,7 +111,7 @@ func BenchmarkSaveFile(b *testing.B) {
 	wg := &sync.WaitGroup{}
 	c := openOne(b, nil)
 	b.ResetTimer()
-	for range make([]bool, b.N) {
+	for range make([]struct{}, b.N) {
 		wg.Add(1)
 		go saveOne(b, c, wg)
 	}
@@ -121,7 +121,7 @@ func BenchmarkSaveFile(b *testing.B) {
 func BenchmarkOpenSave(b *testing.B) {
 	wg := &sync.WaitGroup{}
 	b.ResetTimer()
-	for range make([]bool, b.N) {
+	for range make([]struct{}, b.N) {
 		wg.Add(1)
 		go openSaveOne(b, wg)
 	}
@@ -131,7 +131,7 @@ func BenchmarkOpenSave(b *testing.B) {
 func BenchmarkOpenJSON(b *testing.B) {
 	wg := &sync.WaitGroup{}
 	b.ResetTimer()
-	for range make([]bool, b.N) {
+	for range make([]struct{}, b.N) {
 		wg.Add(1)
 		go openJSON(b, wg)
 	}
@@ -142,7 +142,7 @@ func BenchmarkSaveJSON(b *testing.B) {
 	wg := &sync.WaitGroup{}
 	c := openJSON(b, nil)
 	b.ResetTimer()
-	for range make([]bool, b.N) {
+	for range make([]struct{}, b.N) {
 		wg.Add(1)
 		go saveJSON(b, c, wg)
 	}
@@ -152,7 +152,7 @@ func BenchmarkSaveJSON(b *testing.B) {
 func BenchmarkOpenSaveJSON(b *testing.B) {
 	wg := &sync.WaitGroup{}
 	b.ResetTimer()
-	for range make([]bool, b.N) {
+	for range make([]struct{}, b.N) {
 		wg.Add(1)
 		go openSaveJSON(b, wg)
 	}
@@ -163,7 +163,7 @@ func BenchmarkOpenD2sSaveJSON(b *testing.B) {
 	c := openOne(b, nil)
 	wg := &sync.WaitGroup{}
 	b.ResetTimer()
-	for range make([]bool, b.N) {
+	for range make([]struct{}, b.N) {
 		wg.Add(1)
 		go saveJSON(b, c, wg)
 	}

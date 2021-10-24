@@ -8,25 +8,25 @@ import (
 )
 
 const (
-	defaultQuestsHeaderString = "Woo!"
-	questsHeaderLength        = 4
-	questsMagicLength         = 6
+	defaultHeaderString = "Woo!"
+	headerLength        = 4
+	magicLength         = 6
 )
 
 var (
-	defaultQuestsHeader = [questsHeaderLength]byte{}
-	defaultQuestsMagic  = [questsMagicLength]byte{6, 0, 0, 0, 42, 1}
-	wrongHeader         = errors.New("wrong quests header")
+	defaultHeader = [headerLength]byte{}
+	defaultMagic  = [magicLength]byte{6, 0, 0, 0, 42, 1}
+	wrongHeader   = errors.New("wrong quests header")
 )
 
 func init() {
-	copy(defaultQuestsHeader[:], defaultQuestsHeaderString[:])
+	copy(defaultHeader[:], defaultHeaderString[:])
 }
 
 //Quests ...
 type Quests struct {
-	header    [questsHeaderLength]byte
-	magic     [questsMagicLength]byte
+	header    [headerLength]byte
+	magic     [magicLength]byte
 	Normal    *Difficulty `json:"normal"`
 	Nightmare *Difficulty `json:"nightmare"`
 	Hell      *Difficulty `json:"hell"`
@@ -35,8 +35,8 @@ type Quests struct {
 //NewEmptyQuests returns empty Quests
 func NewEmptyQuests() (*Quests, error) {
 	q := &Quests{}
-	q.header = defaultQuestsHeader
-	q.magic = defaultQuestsMagic
+	q.header = defaultHeader
+	q.magic = defaultMagic
 	var err error
 	q.Normal, err = NewEmptyDifficulty()
 	if err != nil {
@@ -60,8 +60,15 @@ func NewQuests(r io.Reader) (*Quests, error) {
 	if err := binary.Read(r, binaryEndian, &q.header); err != nil {
 		return nil, err
 	}
+	headerString := string(bytes.Trim(q.header[:], "\x00"))
+	if headerString != defaultHeaderString {
+		return nil, wrongHeader
+	}
 	if err := binary.Read(r, binaryEndian, &q.magic); err != nil {
 		return nil, err
+	}
+	if q.magic != defaultMagic {
+		q.magic = defaultMagic
 	}
 	var err error
 	q.Normal, err = NewDifficulty(r)
@@ -75,13 +82,6 @@ func NewQuests(r io.Reader) (*Quests, error) {
 	q.Hell, err = NewDifficulty(r)
 	if err != nil {
 		return nil, err
-	}
-	headerString := string(bytes.Trim(q.header[:], "\x00"))
-	if headerString != defaultQuestsHeaderString {
-		return nil, wrongHeader
-	}
-	if q.magic != defaultQuestsMagic {
-		q.magic = defaultQuestsMagic
 	}
 	return q, nil
 }

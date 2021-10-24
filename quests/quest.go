@@ -69,7 +69,7 @@ func (q *Quest) SetFlag(flag QuestFlag, val bool) {
 // ExportMap ...
 func (q *Quest) ExportMap() *QuestImportExport {
 	exportMap := QuestImportExport{}
-	for flag := range make([]bool, questFlagCount) {
+	for flag := range make([]struct{}, questFlagCount) {
 		qf := QuestFlag(flag)
 		exportMap[utils.TitleToJSONTitle(qf.String())] = q.GetFlag(qf)
 	}
@@ -83,7 +83,7 @@ func (q *Quest) MarshalJSON() ([]byte, error) {
 
 // ImportMap ...
 func (q *Quest) ImportMap(importMap QuestImportExport) {
-	for flag := range make([]bool, questFlagCount) {
+	for flag := range make([]struct{}, questFlagCount) {
 		qf := QuestFlag(flag)
 		flagStatus, ok := importMap[utils.TitleToJSONTitle(qf.String())]
 		if ok {

@@ -87,7 +87,7 @@ func (a *Act) ImportMap(importMap ActImportMap) error {
 		return actNotExists
 	}
 	actMap := actQuestsMap[a.id]
-	for quest := range make([]bool, actLengths[a.id]) {
+	for quest := range make([]struct{}, actLengths[a.id]) {
 		if quest >= actLengths[a.id] {
 			continue
 		}

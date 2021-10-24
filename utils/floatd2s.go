@@ -6,6 +6,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/vitalick/bitslice"
+	"github.com/vitalick/go-d2editor/consts"
+	"io"
 	"math"
 )
 
@@ -61,4 +63,27 @@ func (f *FloatD2s) SetFloat64(inFloat float64) error {
 	*bs = bs.Or(*bsF)
 	copy(f[:], bs.ToBytes()[:4])
 	return nil
+}
+
+//FloatD2sGo type for d2s float
+type FloatD2sGo float64
+
+func NewFloatD2sGo(r io.Reader) (FloatD2sGo, error) {
+	fd2s := FloatD2s{}
+	err := binary.Read(r, consts.BinaryEndian, &fd2s)
+	if err != nil {
+		return 0, err
+	}
+	f := FloatD2sGo(fd2s.GetFloat64())
+	return f, nil
+}
+
+//GetPacked convert FloatD2sGo to FloatD2s
+func (f FloatD2sGo) GetPacked() (FloatD2s, error) {
+	fd2s := FloatD2s{}
+	err := fd2s.SetFloat64(float64(f))
+	if err != nil {
+		return fd2s, err
+	}
+	return fd2s, nil
 }

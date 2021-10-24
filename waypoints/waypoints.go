@@ -8,35 +8,35 @@ import (
 )
 
 const (
-	defaultWaypointsHeaderString = "WS"
-	waypointsHeaderLength        = 2
-	waypointsMagicLength         = 6
+	defaultHeaderString = "WS"
+	headerLength        = 2
+	magicLength         = 6
 )
 
 var (
-	defaultWaypointsHeader = [waypointsHeaderLength]byte{}
-	defaultWaypointsMagic  = [waypointsMagicLength]byte{6, 0, 0, 0, 42, 1}
-	wrongHeader            = errors.New("wrong waypoints header")
+	defaultHeader = [headerLength]byte{}
+	defaultMagic  = [magicLength]byte{6, 0, 0, 0, 42, 1}
+	wrongHeader   = errors.New("wrong waypoints header")
 )
 
 func init() {
-	copy(defaultWaypointsHeader[:], defaultWaypointsHeaderString[:])
+	copy(defaultHeader[:], defaultHeaderString[:])
 }
 
 //Waypoints ...
 type Waypoints struct {
-	header    [waypointsHeaderLength]byte
-	magic     [waypointsMagicLength]byte
+	header    [headerLength]byte
+	magic     [magicLength]byte
 	Normal    Difficulty `json:"normal"`
 	Nightmare Difficulty `json:"nightmare"`
 	Hell      Difficulty `json:"hell"`
 }
 
-//NewEmptyWaypoints returns empty Quests
+//NewEmptyWaypoints returns empty Waypoints
 func NewEmptyWaypoints() (*Waypoints, error) {
 	q := &Waypoints{}
-	q.header = defaultWaypointsHeader
-	q.magic = defaultWaypointsMagic
+	q.header = defaultHeader
+	q.magic = defaultMagic
 	var err error
 	q.Normal, err = NewEmptyDifficulty()
 	if err != nil {
@@ -60,8 +60,15 @@ func NewWaypoints(r io.Reader) (*Waypoints, error) {
 	if err := binary.Read(r, binaryEndian, &q.header); err != nil {
 		return nil, err
 	}
+	headerString := string(bytes.Trim(q.header[:], "\x00"))
+	if headerString != defaultHeaderString {
+		return nil, wrongHeader
+	}
 	if err := binary.Read(r, binaryEndian, &q.magic); err != nil {
 		return nil, err
+	}
+	if q.magic != defaultMagic {
+		q.magic = defaultMagic
 	}
 	var err error
 	q.Normal, err = NewDifficulty(r)
@@ -75,13 +82,6 @@ func NewWaypoints(r io.Reader) (*Waypoints, error) {
 	q.Hell, err = NewDifficulty(r)
 	if err != nil {
 		return nil, err
-	}
-	headerString := string(bytes.Trim(q.header[:], "\x00"))
-	if headerString != defaultWaypointsHeaderString {
-		return nil, wrongHeader
-	}
-	if q.magic == defaultWaypointsMagic {
-		q.magic = defaultWaypointsMagic
 	}
 	return q, nil
 }
