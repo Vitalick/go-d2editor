@@ -253,7 +253,7 @@ func (c *Character) getNameBytes() [nameSize]byte {
 
 //ToWriter write not prepared for export byte struct to io.Writer
 func (c *Character) ToWriter(w io.Writer) error {
-	c.Attributes.Level = int32(c.Level)
+	c.Attributes.Level = uint64(c.Level)
 	if err := c.Attributes.CheckMaxGold(); err != nil {
 		return err
 	}
