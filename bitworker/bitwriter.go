@@ -1,4 +1,4 @@
-package bitreader
+package bitworker
 
 import (
 	"errors"
@@ -29,7 +29,7 @@ func (bt *BitWriter) WriteBits(val, start, size uint32) error {
 		return errors.New("request too large")
 	}
 
-	if int((start+size)/8) >= len(bt.Bytes) {
+	if int((start+size)/8) >= len(bt.Bytes) && start+size != uint32(len(bt.Bytes)*8) {
 		newB := make([]byte, int((start+size)/8)+1)
 		for i := range bt.Bytes {
 			newB[i] = bt.Bytes[i]

@@ -1,4 +1,4 @@
-package bitreader
+package bitworker
 
 import (
 	"errors"
@@ -28,7 +28,7 @@ func (bt *BitReader) ReadBits(start, size uint32) (uint32, error) {
 		return 0, errors.New("request too large")
 	}
 
-	if int((start+size)/8) >= len(bt.b) {
+	if int((start+size)/8) >= len(bt.b) && start+size != uint32(len(bt.b)*8) {
 		return 0, errors.New("slice too small")
 	}
 	ptrToDataElement := unsafe.Pointer(&bt.b[indexOfDataElements])

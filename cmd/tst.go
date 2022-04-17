@@ -2,14 +2,14 @@ package main
 
 import (
 	"fmt"
-	"github.com/vitalick/go-d2editor/bitreader"
+	"github.com/vitalick/go-d2editor/bitworker"
 	"math"
 )
 
 func main() {
 	b := []byte{7, 15}
-	br := bitreader.NewBitReader(b)
-	bw := bitreader.NewBitWriter(b)
+	br := bitworker.NewBitReader(b)
+	bw := bitworker.NewBitWriter(b)
 	fmt.Println(br)
 	res, err := br.ReadBits(4, 9)
 	if err != nil {
