@@ -3,6 +3,7 @@ package d2editor
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 )
 
@@ -25,11 +26,15 @@ func Open(filepath string) (*Character, error) {
 	}
 
 	defer file.Close()
-
-	c, err := NewCharacter(file)
+	b, err := io.ReadAll(file)
+	if err != nil {
+		return nil, err
+	}
+	c, err := NewCharacter(b)
 
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Error while parsing .d2s file")
+		fmt.Println(err)
 		return nil, err
 	}
 

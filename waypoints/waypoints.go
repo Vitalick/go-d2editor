@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"errors"
-	"io"
+	"github.com/vitalick/go-d2editor/bitworker"
 )
 
 const (
@@ -54,32 +54,35 @@ func NewEmptyWaypoints() (*Waypoints, error) {
 }
 
 //NewWaypoints returns Waypoints from packed bytes
-func NewWaypoints(r io.Reader) (*Waypoints, error) {
+func NewWaypoints(br *bitworker.BitReader) (*Waypoints, error) {
 	q := &Waypoints{}
 
-	if err := binary.Read(r, binaryEndian, &q.header); err != nil {
+	res, err := br.ReadNextBitsByteSlice(uint(len(q.header)))
+	if err != nil {
 		return nil, err
 	}
+	copy(q.header[:], res[:len(q.header)])
 	headerString := string(bytes.Trim(q.header[:], "\x00"))
 	if headerString != defaultHeaderString {
 		return nil, wrongHeader
 	}
-	if err := binary.Read(r, binaryEndian, &q.magic); err != nil {
+	res, err = br.ReadNextBitsByteSlice(uint(len(q.magic)))
+	if err != nil {
 		return nil, err
 	}
+	copy(q.magic[:], res[:len(q.magic)])
 	if q.magic != defaultMagic {
 		q.magic = defaultMagic
 	}
-	var err error
-	q.Normal, err = NewDifficulty(r)
+	q.Normal, err = NewDifficulty(br)
 	if err != nil {
 		return nil, err
 	}
-	q.Nightmare, err = NewDifficulty(r)
+	q.Nightmare, err = NewDifficulty(br)
 	if err != nil {
 		return nil, err
 	}
-	q.Hell, err = NewDifficulty(r)
+	q.Hell, err = NewDifficulty(br)
 	if err != nil {
 		return nil, err
 	}

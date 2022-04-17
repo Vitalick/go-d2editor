@@ -4,8 +4,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"errors"
-	"github.com/vitalick/bitslice"
-	"io"
+	"github.com/vitalick/go-d2editor/bitworker"
 )
 
 const (
@@ -44,23 +43,21 @@ func NewEmptyNPCDialogs() *NPCDialogs {
 }
 
 //NewNPCDialogs returns NPCDialogs from packed bytes
-func NewNPCDialogs(r io.Reader) (*NPCDialogs, error) {
+func NewNPCDialogs(br *bitworker.BitReader) (*NPCDialogs, error) {
 	q := &NPCDialogs{}
 
-	if err := binary.Read(r, binaryEndian, &q.Header); err != nil {
+	if err := br.ReadNextBitsByteArray(q.Header[:]); err != nil {
 		return nil, err
 	}
-	if err := binary.Read(r, binaryEndian, &q.Length); err != nil {
+	var err error
+	q.Length, err = br.ReadNextBitsByte()
+	if err != nil {
 		return nil, err
 	}
-	//b := [bitSliceSizeBytes]byte{}
-	//
-	//if err := binary.Read(r, binaryEndian, &b); err != nil {
-	//	return nil, err
-	//}
-	//fmt.Printf("%0.8b\n", b)
-	//return nil, errors.New("test error")
-	bitSlice, err := bitslice.NewBitSliceFromReader(r, binaryEndian, bitSliceSizeBytes)
+	bits, err := br.ReadNextBitsShortBoolSlice(bitSliceSizeBytes * 8)
+	if err != nil {
+		return nil, err
+	}
 	headerString := string(bytes.Trim(q.Header[:], "\x00"))
 	if headerString != defaultHeaderString {
 		return nil, wrongHeader
@@ -72,15 +69,15 @@ func NewNPCDialogs(r io.Reader) (*NPCDialogs, error) {
 		return nil, err
 	}
 	//fmt.Println(bitSlice.Slice)
-	q.Normal, err = NewDifficulty(*bitSlice, 0)
+	q.Normal, err = NewDifficulty(bits, 0)
 	if err != nil {
 		return nil, err
 	}
-	q.Nightmare, err = NewDifficulty(*bitSlice, 1)
+	q.Nightmare, err = NewDifficulty(bits, 1)
 	if err != nil {
 		return nil, err
 	}
-	q.Hell, err = NewDifficulty(*bitSlice, 2)
+	q.Hell, err = NewDifficulty(bits, 2)
 	if err != nil {
 		return nil, err
 	}

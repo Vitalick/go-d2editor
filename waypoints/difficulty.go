@@ -5,9 +5,9 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"github.com/vitalick/bitslice"
+	"github.com/vitalick/go-d2editor/bitworker"
 	"github.com/vitalick/go-d2editor/consts"
 	"github.com/vitalick/go-d2editor/utils"
-	"io"
 )
 
 type ActImportMap map[string]bool
@@ -29,20 +29,18 @@ func NewEmptyDifficulty() (Difficulty, error) {
 }
 
 //NewDifficulty returns Difficulty from packed bytes
-func NewDifficulty(r io.Reader) (Difficulty, error) {
+func NewDifficulty(br *bitworker.BitReader) (Difficulty, error) {
 	d := Difficulty{}
-
-	if err := binary.Read(r, binaryEndian, &d.header); err != nil {
+	if err := br.ReadNextBitsByteArray(d.header[:]); err != nil {
 		return d, err
 	}
 	d.header = [2]byte{2, 1}
-	bs, err := bitslice.NewBitSliceFromReader(r, binaryEndian, 5)
+	res, err := br.ReadNextBitsShortBoolSlice(5 * 8)
 	if err != nil {
 		return d, err
 	}
-	d.actsWaypoints = bs.Slice[:actWaypointsCount]
-	err = binary.Read(r, binaryEndian, &d.magic)
-	if err != nil {
+	d.actsWaypoints = res[:actWaypointsCount]
+	if err := br.ReadNextBitsByteArray(d.magic[:]); err != nil {
 		return d, err
 	}
 

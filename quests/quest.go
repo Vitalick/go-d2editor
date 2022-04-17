@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/vitalick/bitslice"
+	"github.com/vitalick/go-d2editor/bitworker"
 	"github.com/vitalick/go-d2editor/consts"
 	"github.com/vitalick/go-d2editor/utils"
-	"io"
 )
 
 type QuestImportExport map[string]bool
@@ -32,16 +32,16 @@ func NewEmptyQuest(a consts.ActID, qID ActQuest) (*Quest, error) {
 }
 
 //NewQuest returns Quest from packed bytes
-func NewQuest(r io.Reader, a consts.ActID, qID ActQuest) (*Quest, error) {
+func NewQuest(br *bitworker.BitReader, a consts.ActID, qID ActQuest) (*Quest, error) {
 	q, err := NewEmptyQuest(a, qID)
 	if err != nil {
 		return nil, err
 	}
-	bs, err := bitslice.NewBitSliceFromReader(r, binaryEndian, 2)
+	flags, err := br.ReadNextBitsShortBoolSlice(16)
 	if err != nil {
 		return nil, err
 	}
-	q.flags = bs.Slice[:questFlagCount]
+	q.flags = flags[:questFlagCount]
 	return q, nil
 }
 

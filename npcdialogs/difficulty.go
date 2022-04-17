@@ -23,15 +23,20 @@ func NewEmptyDifficulty() Difficulty {
 }
 
 //NewDifficulty returns Difficulty from packed bytes
-func NewDifficulty(slice bitslice.BitSlice, dPosition uint) (Difficulty, error) {
+func NewDifficulty(slice []bool, dPosition uint) (Difficulty, error) {
 	d := NewEmptyDifficulty()
-	if slice.LenBytes() != bitSliceSizeBytes {
+
+	lenBytes := len(slice) / 8
+	if len(slice)%8 > 0 {
+		lenBytes += 1
+	}
+	if lenBytes != bitSliceSizeBytes {
 		return nil, bitSliceSizeError
 	}
-	slice = slice.ShiftLeft(int(dPosition) * npcDialogsCount)
+	innerSlice := slice[int(dPosition)*npcDialogsCount:]
 	for i := range d {
-		d[i].Introduction = slice.Slice[i]
-		d[i].Congratulations = slice.Slice[i+dialogTypeOffset]
+		d[i].Introduction = innerSlice[i]
+		d[i].Congratulations = innerSlice[i+dialogTypeOffset]
 	}
 	return d, nil
 }

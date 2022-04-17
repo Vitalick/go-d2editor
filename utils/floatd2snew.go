@@ -41,12 +41,12 @@ func (f *FloatD2s) SetFloat64(inFloat float64) error {
 		*f = FloatD2s{255, 255, 255, 255}
 		return nil
 	}
-	floatPart := uint32(math.Ceil((inFloat - float64(intPart)) * 255))
+	floatPart := uint64(math.Ceil((inFloat - float64(intPart)) * 255))
 	newB := bitworker.NewBitWriter(nil)
 	if err := newB.WriteNextBits(floatPart, 8); err != nil {
 		return err
 	}
-	if err := newB.WriteNextBits(intPart, 24); err != nil {
+	if err := newB.WriteNextBits(uint64(intPart), 24); err != nil {
 		return err
 	}
 	copy(f[:], newB.Bytes[:4])

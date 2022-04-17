@@ -1,11 +1,9 @@
 package attributes
 
 import (
-	"bytes"
-	"encoding/binary"
 	"errors"
 	"fmt"
-	"io"
+	"github.com/vitalick/go-d2editor/bitworker"
 )
 
 const (
@@ -26,22 +24,22 @@ func init() {
 //Attributes ...
 type Attributes struct {
 	header            [headerLength]byte
-	Strength          uint64 `json:"strength"`
-	Energy            uint64 `json:"energy"`
-	Dexterity         uint64 `json:"dexterity"`
-	Vitality          uint64 `json:"vitality"`
-	UnusedStats       uint64 `json:"unused_stats"`
-	UnusedSkillPoints uint64 `json:"unused_skill_points"`
-	CurrentHP         uint64 `json:"current_hp"`
-	MaxHP             uint64 `json:"max_hp"`
-	CurrentMana       uint64 `json:"current_mana"`
-	MaxMana           uint64 `json:"max_mana"`
-	CurrentStamina    uint64 `json:"current_stamina"`
-	MaxStamina        uint64 `json:"max_stamina"`
-	Level             uint64 `json:"-"`
-	Experience        uint64 `json:"experience"`
-	GoldInventory     uint64 `json:"gold_inventory"`
-	GoldStash         uint64 `json:"gold_stash"`
+	Strength          uint64  `json:"strength"`
+	Energy            uint64  `json:"energy"`
+	Dexterity         uint64  `json:"dexterity"`
+	Vitality          uint64  `json:"vitality"`
+	UnusedStats       uint64  `json:"unused_stats"`
+	UnusedSkillPoints uint64  `json:"unused_skill_points"`
+	CurrentHP         float64 `json:"current_hp"`
+	MaxHP             float64 `json:"max_hp"`
+	CurrentMana       float64 `json:"current_mana"`
+	MaxMana           float64 `json:"max_mana"`
+	CurrentStamina    float64 `json:"current_stamina"`
+	MaxStamina        float64 `json:"max_stamina"`
+	Level             uint64  `json:"-"`
+	Experience        uint64  `json:"experience"`
+	GoldInventory     uint64  `json:"gold_inventory"`
+	GoldStash         uint64  `json:"gold_stash"`
 }
 
 //NewEmptyAttributes returns empty Attributes
@@ -52,9 +50,9 @@ func NewEmptyAttributes() *Attributes {
 }
 
 //NewAttributes returns Attributes from packed bytes
-func NewAttributes(r io.Reader) (*Attributes, error) {
+func NewAttributes(br *bitworker.BitReader) (*Attributes, error) {
 	a := NewEmptyAttributes()
-	if err := binary.Read(r, binaryEndian, &a.header); err != nil {
+	if err := br.ReadNextBitsByteArray(a.header[:]); err != nil {
 		return nil, err
 	}
 	headerString := string(a.header[:])
@@ -62,24 +60,8 @@ func NewAttributes(r io.Reader) (*Attributes, error) {
 		fmt.Printf("%02x\n", a.header)
 		return nil, wrongHeader
 	}
-	lastByte := byte(0x0)
-	var bytesA []byte
 	for {
-		var nowByte byte
-		if err := binary.Read(r, binaryEndian, &nowByte); err != nil {
-			return nil, err
-		}
-		bytesA = append(bytesA, nowByte)
-		if nowByte == 0x3f && lastByte&0xe0 == 0xe0 {
-			break
-		}
-		lastByte = nowByte
-	}
-	bitArr := newBitArray(bytesA)
-	sumLen := 0
-	for {
-		id, err := bitArr.GetFirst(9)
-		sumLen += 9
+		id, err := br.ReadNextBits(9)
 		if err != nil {
 			return nil, err
 		}
@@ -91,9 +73,7 @@ func NewAttributes(r io.Reader) (*Attributes, error) {
 		if attrLen == 0 {
 			return nil, errors.New(fmt.Sprintf("unknown attribute id: %d %b", id, id))
 		}
-		valNew, err := bitArr.GetFirst(attrLen)
-		sumLen += int(attrLen)
-		//fmt.Println(attr)
+		valNew, err := br.ReadNextBits(uint64(attrLen))
 		if err != nil {
 			return nil, err
 		}
@@ -111,17 +91,17 @@ func NewAttributes(r io.Reader) (*Attributes, error) {
 		case unusedSkills:
 			a.UnusedSkillPoints = valNew
 		case currentHP:
-			a.CurrentHP = valNew / 256
+			a.CurrentHP = float64(valNew) / 256
 		case maxHP:
-			a.MaxHP = valNew / 256
+			a.MaxHP = float64(valNew) / 256
 		case currentMana:
-			a.CurrentMana = valNew / 256
+			a.CurrentMana = float64(valNew) / 256
 		case maxMana:
-			a.MaxMana = valNew / 256
+			a.MaxMana = float64(valNew) / 256
 		case currentStamina:
-			a.CurrentStamina = valNew / 256
+			a.CurrentStamina = float64(valNew) / 256
 		case maxStamina:
-			a.MaxStamina = valNew / 256
+			a.MaxStamina = float64(valNew) / 256
 		case level:
 			a.Level = valNew
 		case experience:
@@ -131,6 +111,9 @@ func NewAttributes(r io.Reader) (*Attributes, error) {
 		case stashedGold:
 			a.GoldStash = valNew
 		}
+	}
+	if err := br.MoveToNextByte(); err != nil {
+		return nil, err
 	}
 	return a, nil
 }
@@ -173,79 +156,63 @@ func (a *Attributes) CheckMaxGold() error {
 
 //GetPacked returns packed Attributes into []byte
 func (a *Attributes) GetPacked() ([]byte, error) {
-	buf := &bytes.Buffer{}
-	if err := binary.Write(buf, binaryEndian, a.header); err != nil {
+	bw := bitworker.NewBitWriter(nil)
+
+	if err := bw.WriteNextBitsByteSlice(a.header[:]); err != nil {
 		return nil, err
 	}
-	outS := ""
 	for i := range make([]struct{}, 16) {
 		attr := AttributeID(i)
 		attrLen := int(attr.Size())
-		nowS := ""
-		formatS := fmt.Sprintf("%%0%db", attrLen)
+		var nowV uint64
 		switch attr {
 		case strength:
-			nowS = fmt.Sprintf(formatS, a.Strength)
+			nowV = a.Strength
 		case energy:
-			nowS = fmt.Sprintf(formatS, a.Energy)
+			nowV = a.Energy
 		case dexterity:
-			nowS = fmt.Sprintf(formatS, a.Dexterity)
+			nowV = a.Dexterity
 		case vitality:
-			nowS = fmt.Sprintf(formatS, a.Vitality)
+			nowV = a.Vitality
 		case unusedStats:
-			nowS = fmt.Sprintf(formatS, a.UnusedStats)
+			nowV = a.UnusedStats
 		case unusedSkills:
-			nowS = fmt.Sprintf(formatS, a.UnusedSkillPoints)
+			nowV = a.UnusedSkillPoints
 		case currentHP:
-			nowS = fmt.Sprintf(formatS, a.CurrentHP*256)
+			nowV = uint64(a.CurrentHP * 256)
 		case maxHP:
-			nowS = fmt.Sprintf(formatS, a.MaxHP*256)
+			nowV = uint64(a.MaxHP * 256)
 		case currentMana:
-			nowS = fmt.Sprintf(formatS, a.CurrentMana*256)
+			nowV = uint64(a.CurrentMana * 256)
 		case maxMana:
-			nowS = fmt.Sprintf(formatS, a.MaxMana*256)
+			nowV = uint64(a.MaxMana * 256)
 		case currentStamina:
-			nowS = fmt.Sprintf(formatS, a.CurrentStamina*256)
+			nowV = uint64(a.CurrentStamina * 256)
 		case maxStamina:
-			nowS = fmt.Sprintf(formatS, a.MaxStamina*256)
+			nowV = uint64(a.MaxStamina * 256)
 		case level:
-			nowS = fmt.Sprintf(formatS, a.Level)
+			nowV = a.Level
 		case experience:
-			nowS = fmt.Sprintf(formatS, a.Experience)
+			nowV = a.Experience
 		case gold:
-			nowS = fmt.Sprintf(formatS, a.GoldInventory)
+			nowV = a.GoldInventory
 		case stashedGold:
-			nowS = fmt.Sprintf(formatS, a.GoldStash)
+			nowV = a.GoldStash
 		default:
 			break
 		}
-		nowS = nowS[len(nowS)-attrLen:]
-		//fmt.Println("attrLen", attrLen)
-		//fmt.Println("nowS", nowS)
-		//fmt.Println()
-		cmpS := ""
-		for range nowS {
-			cmpS += "0"
+		if nowV != 0 {
+			if err := bw.WriteNextBits(uint64(i), 9); err != nil {
+				return nil, err
+			}
+			if err := bw.WriteNextBits(nowV, uint64(attrLen)); err != nil {
+				return nil, err
+			}
 		}
-		if nowS == cmpS {
-			continue
-		}
-		idCounter := fmt.Sprintf("%09b", attr)
-		//fmt.Println("attrLen", 9)
-		//fmt.Println("nowS", idCounter)
-		//fmt.Println()
-		outS = nowS + idCounter + outS
 	}
-	outS = "00111111111" + outS
-	fmt.Println(outS)
-	fmt.Println("outS", len(outS))
-	ba := bitArray{s: outS}
-	bts, err := ba.GetBytes()
-	if err != nil {
+	if err := bw.WriteNextBits(0x1ff, 9); err != nil {
 		return nil, err
 	}
-	if err = binary.Write(buf, binaryEndian, bts); err != nil {
-		return nil, err
-	}
-	return buf.Bytes(), nil
+	return bw.Bytes, nil
+
 }

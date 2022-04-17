@@ -1,17 +1,14 @@
 package d2editor
 
 import (
-	"encoding/binary"
-	"github.com/vitalick/go-d2editor/consts"
-	"io"
+	"github.com/vitalick/go-d2editor/bitworker"
 )
 
 const (
-	firstByte     = 1
-	hardcoreByte  = firstByte << 2
-	deadByte      = firstByte << 3
-	expansionByte = firstByte << 5
-	ladderByte    = firstByte << 6
+	hardcoreByte  = 1 << 2
+	deadByte      = 1 << 3
+	expansionByte = 1 << 5
+	ladderByte    = 1 << 6
 )
 
 //Status ...
@@ -23,9 +20,9 @@ type Status struct {
 }
 
 //NewStatus ...
-func NewStatus(r io.Reader) (*Status, error) {
-	var flags byte
-	if err := binary.Read(r, consts.BinaryEndian, &flags); err != nil {
+func NewStatus(br *bitworker.BitReader) (*Status, error) {
+	flags, err := br.ReadNextBitsByte()
+	if err != nil {
 		return nil, err
 	}
 	s := &Status{

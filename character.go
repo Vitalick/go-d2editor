@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"github.com/vitalick/go-d2editor/attributes"
+	"github.com/vitalick/go-d2editor/bitworker"
 	"github.com/vitalick/go-d2editor/consts"
 	"github.com/vitalick/go-d2editor/npcdialogs"
 	"github.com/vitalick/go-d2editor/quests"
@@ -45,8 +46,8 @@ type Character struct {
 }
 
 type inputStruct struct {
-	data interface{}
-	f    func(r io.Reader, c *Character) error
+	data any
+	f    func(br *bitworker.BitReader, c *Character) error
 }
 
 //NewEmptyCharacter ...
@@ -96,17 +97,17 @@ func NewEmptyCharacter(version uint) (*Character, error) {
 }
 
 //NewCharacter ...
-func NewCharacter(r io.Reader) (*Character, error) {
+func NewCharacter(b []byte) (*Character, error) {
 	c := &Character{}
 	var err error
 	var charName [nameSize]byte
 
 	var inArr []inputStruct
-
+	br := bitworker.NewBitReader(b)
 	inArr = append(inArr, inputStruct{
 		nil,
-		func(r io.Reader, c *Character) error {
-			header, er := NewHeader(r)
+		func(br *bitworker.BitReader, c *Character) error {
+			header, er := NewHeader(br)
 			if er != nil {
 				return er
 			}
@@ -120,8 +121,8 @@ func NewCharacter(r io.Reader) (*Character, error) {
 
 	inArr = append(inArr, inputStruct{
 		nil,
-		func(r io.Reader, c *Character) error {
-			status, er := NewStatus(r)
+		func(br *bitworker.BitReader, c *Character) error {
+			status, er := NewStatus(br)
 			if er != nil {
 				return er
 			}
@@ -147,8 +148,8 @@ func NewCharacter(r io.Reader) (*Character, error) {
 
 	inArr = append(inArr, inputStruct{
 		nil,
-		func(r io.Reader, c *Character) error {
-			loc, er := NewLocations(r)
+		func(br *bitworker.BitReader, c *Character) error {
+			loc, er := NewLocations(br)
 			if er != nil {
 				return er
 			}
@@ -164,8 +165,8 @@ func NewCharacter(r io.Reader) (*Character, error) {
 
 	inArr = append(inArr, inputStruct{
 		nil,
-		func(r io.Reader, c *Character) error {
-			q, er := quests.NewQuests(r)
+		func(br *bitworker.BitReader, c *Character) error {
+			q, er := quests.NewQuests(br)
 			if er != nil {
 				return er
 			}
@@ -176,8 +177,8 @@ func NewCharacter(r io.Reader) (*Character, error) {
 
 	inArr = append(inArr, inputStruct{
 		nil,
-		func(r io.Reader, c *Character) error {
-			w, er := waypoints.NewWaypoints(r)
+		func(br *bitworker.BitReader, c *Character) error {
+			w, er := waypoints.NewWaypoints(br)
 			if er != nil {
 				return er
 			}
@@ -189,8 +190,8 @@ func NewCharacter(r io.Reader) (*Character, error) {
 
 	inArr = append(inArr, inputStruct{
 		nil,
-		func(r io.Reader, c *Character) error {
-			d, er := npcdialogs.NewNPCDialogs(r)
+		func(br *bitworker.BitReader, c *Character) error {
+			d, er := npcdialogs.NewNPCDialogs(br)
 			if er != nil {
 				return er
 			}
@@ -201,8 +202,8 @@ func NewCharacter(r io.Reader) (*Character, error) {
 
 	inArr = append(inArr, inputStruct{
 		nil,
-		func(r io.Reader, c *Character) error {
-			a, er := attributes.NewAttributes(r)
+		func(br *bitworker.BitReader, c *Character) error {
+			a, er := attributes.NewAttributes(br)
 			if er != nil {
 				return er
 			}
@@ -213,14 +214,14 @@ func NewCharacter(r io.Reader) (*Character, error) {
 
 	for _, inData := range inArr {
 		if inData.f != nil {
-			err = inData.f(r, c)
+			err = inData.f(br, c)
 			if err != nil {
 				return nil, err
 			}
 			continue
 		}
 		if inData.data != nil {
-			err = binary.Read(r, consts.BinaryEndian, inData.data)
+			err = binary.Read(br, consts.BinaryEndian, inData.data)
 			if err != nil {
 				return nil, err
 			}

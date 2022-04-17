@@ -1,9 +1,7 @@
 package d2editor
 
 import (
-	"encoding/binary"
-	"github.com/vitalick/go-d2editor/consts"
-	"io"
+	"github.com/vitalick/go-d2editor/bitworker"
 )
 
 const defaultMagic = 0xAA55AA55
@@ -22,9 +20,23 @@ func NewEmptyHeader(version uint) *Header {
 }
 
 //NewHeader returns Header from packed bytes
-func NewHeader(r io.Reader) (*Header, error) {
+func NewHeader(br *bitworker.BitReader) (*Header, error) {
 	h := &Header{}
-	if err := binary.Read(r, consts.BinaryEndian, h); err != nil {
+	var err error
+	h.Magic, err = br.ReadNextBitsUint32()
+	if err != nil {
+		return nil, err
+	}
+	h.Version, err = br.ReadNextBitsUint32()
+	if err != nil {
+		return nil, err
+	}
+	h.Filesize, err = br.ReadNextBitsUint32()
+	if err != nil {
+		return nil, err
+	}
+	h.Checksum, err = br.ReadNextBitsUint32()
+	if err != nil {
 		return nil, err
 	}
 	if h.Magic == 0 {

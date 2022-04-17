@@ -3,9 +3,9 @@ package quests
 import (
 	"encoding/json"
 	"errors"
+	"github.com/vitalick/go-d2editor/bitworker"
 	"github.com/vitalick/go-d2editor/consts"
 	"github.com/vitalick/go-d2editor/utils"
-	"io"
 )
 
 type ActImportMap map[string]QuestImportExport
@@ -37,12 +37,12 @@ func NewEmptyAct(a consts.ActID) (*Act, error) {
 }
 
 //NewAct returns Act from packed bytes
-func NewAct(r io.Reader, actID consts.ActID) (*Act, error) {
+func NewAct(br *bitworker.BitReader, actID consts.ActID) (*Act, error) {
 
 	a := &Act{id: actID}
 	count := a.QuestCount()
 	for j := 0; j < count; j++ {
-		q, err := NewQuest(r, actID, ActQuest(j))
+		q, err := NewQuest(br, actID, ActQuest(j))
 		if err != nil {
 			return nil, err
 		}

@@ -1,9 +1,7 @@
 package d2editor
 
 import (
-	"encoding/binary"
-	"github.com/vitalick/go-d2editor/consts"
-	"io"
+	"github.com/vitalick/go-d2editor/bitworker"
 )
 
 const locationsCount = 3
@@ -16,9 +14,9 @@ type Locations struct {
 }
 
 //NewLocations returns Locations from io.Reader
-func NewLocations(r io.Reader) (*Locations, error) {
-	var packedLocations [locationsCount]byte
-	if err := binary.Read(r, consts.BinaryEndian, &packedLocations); err != nil {
+func NewLocations(br *bitworker.BitReader) (*Locations, error) {
+	packedLocations, err := br.ReadNextBitsByteSlice(locationsCount)
+	if err != nil {
 		return nil, err
 	}
 	return &Locations{

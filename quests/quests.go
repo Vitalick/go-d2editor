@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"errors"
-	"io"
+	"github.com/vitalick/go-d2editor/bitworker"
 )
 
 const (
@@ -54,32 +54,31 @@ func NewEmptyQuests() (*Quests, error) {
 }
 
 //NewQuests returns Quests from packed bytes
-func NewQuests(r io.Reader) (*Quests, error) {
+func NewQuests(br *bitworker.BitReader) (*Quests, error) {
 	q := &Quests{}
-
-	if err := binary.Read(r, binaryEndian, &q.header); err != nil {
+	if err := br.ReadNextBitsByteArray(q.header[:]); err != nil {
 		return nil, err
 	}
 	headerString := string(bytes.Trim(q.header[:], "\x00"))
 	if headerString != defaultHeaderString {
 		return nil, wrongHeader
 	}
-	if err := binary.Read(r, binaryEndian, &q.magic); err != nil {
+	if err := br.ReadNextBitsByteArray(q.magic[:]); err != nil {
 		return nil, err
 	}
 	if q.magic != defaultMagic {
 		q.magic = defaultMagic
 	}
 	var err error
-	q.Normal, err = NewDifficulty(r)
+	q.Normal, err = NewDifficulty(br)
 	if err != nil {
 		return nil, err
 	}
-	q.Nightmare, err = NewDifficulty(r)
+	q.Nightmare, err = NewDifficulty(br)
 	if err != nil {
 		return nil, err
 	}
-	q.Hell, err = NewDifficulty(r)
+	q.Hell, err = NewDifficulty(br)
 	if err != nil {
 		return nil, err
 	}

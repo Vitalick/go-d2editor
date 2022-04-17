@@ -4,9 +4,9 @@ import (
 	"bytes"
 	"encoding/binary"
 	"encoding/json"
+	"github.com/vitalick/go-d2editor/bitworker"
 	"github.com/vitalick/go-d2editor/consts"
 	"github.com/vitalick/go-d2editor/utils"
-	"io"
 )
 
 type DifficultyImportMap map[string]ActImportMap
@@ -28,10 +28,10 @@ func NewEmptyDifficulty() (*Difficulty, error) {
 }
 
 //NewDifficulty returns Difficulty from packed bytes
-func NewDifficulty(r io.Reader) (*Difficulty, error) {
+func NewDifficulty(br *bitworker.BitReader) (*Difficulty, error) {
 	d := make(Difficulty, consts.ActsCount)
 	for i := range d {
-		act, err := NewAct(r, consts.ActID(i))
+		act, err := NewAct(br, consts.ActID(i))
 		if err != nil {
 			return nil, err
 		}
