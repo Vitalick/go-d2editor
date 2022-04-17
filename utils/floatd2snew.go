@@ -10,11 +10,13 @@ import (
 	"math"
 )
 
-//FloatD2sNew type for d2s float
-type FloatD2sNew [4]byte
+var maxFloatInt = uint32(math.Pow(math.Pow(2, 8), 3))
 
-//GetFloat64 convert FloatD2sNew to float64
-func (f FloatD2sNew) GetFloat64() float64 {
+//FloatD2s type for d2s float
+type FloatD2s [4]byte
+
+//GetFloat64 convert FloatD2s to float64
+func (f FloatD2s) GetFloat64() float64 {
 	bs := bitworker.NewBitReader(f[:])
 	floatPart, err := bs.ReadNextBits(8)
 	if err != nil {
@@ -29,14 +31,14 @@ func (f FloatD2sNew) GetFloat64() float64 {
 	return float64(intPart) + float64(floatPart)/255
 }
 
-//SetFloat64 convert float64 to FloatD2sNew
-func (f *FloatD2sNew) SetFloat64(inFloat float64) error {
+//SetFloat64 convert float64 to FloatD2s
+func (f *FloatD2s) SetFloat64(inFloat float64) error {
 	intPart := uint32(inFloat)
 	if intPart > maxFloatInt {
 		return errors.New(fmt.Sprintf("number should be less or equal then %d", maxFloatInt))
 	}
 	if intPart == maxFloatInt {
-		*f = FloatD2sNew{255, 255, 255, 255}
+		*f = FloatD2s{255, 255, 255, 255}
 		return nil
 	}
 	floatPart := uint32(math.Ceil((inFloat - float64(intPart)) * 255))
@@ -51,22 +53,22 @@ func (f *FloatD2sNew) SetFloat64(inFloat float64) error {
 	return nil
 }
 
-//FloatD2sNewGo type for d2s float
-type FloatD2sNewGo float64
+//FloatD2sGo type for d2s float
+type FloatD2sGo float64
 
-func NewFloatD2sNewGo(r io.Reader) (FloatD2sNewGo, error) {
-	fd2s := FloatD2sNew{}
+func NewFloatD2sGo(r io.Reader) (FloatD2sGo, error) {
+	fd2s := FloatD2s{}
 	err := binary.Read(r, consts.BinaryEndian, &fd2s)
 	if err != nil {
 		return 0, err
 	}
-	f := FloatD2sNewGo(fd2s.GetFloat64())
+	f := FloatD2sGo(fd2s.GetFloat64())
 	return f, nil
 }
 
-//GetPacked convert FloatD2sNewGo to FloatD2sNew
-func (f FloatD2sNewGo) GetPacked() (FloatD2sNew, error) {
-	fd2s := FloatD2sNew{}
+//GetPacked convert FloatD2sGo to FloatD2s
+func (f FloatD2sGo) GetPacked() (FloatD2s, error) {
+	fd2s := FloatD2s{}
 	err := fd2s.SetFloat64(float64(f))
 	if err != nil {
 		return fd2s, err
