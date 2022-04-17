@@ -78,10 +78,10 @@ Coming soon...
 - ~~Add Waypoints to Character~~
 - ~~Add UnkUnk1 to Character~~
 - ~~Add NPCDialogs to Character~~
+- ~~Add Attributes to Character~~
 
 </details>
 
-- Add Attributes to Character
 - Add ClassSkills to Character
 - Add ItemList to Character
 - Add CorpseList to Character
